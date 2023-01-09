@@ -1,77 +1,68 @@
 #include "Game.h"
-#include "Platform/Platform.hpp"
-#include <SFML/Audio.hpp>
-#include <SFML/Graphics.hpp>
-#include <SFML/System.hpp>
-#include <SFML/Window.hpp>
 #include <catch2/catch.hpp>
 
 Game::Game()
 {
+	Init();
+	InitPlayer();
 }
 
 Game::~Game()
 {
+	delete this->window;
+	delete this->player;
 }
 
-void Game::Run()
+void Game ::Init()
 {
-	util::Platform platform;
-
 #if defined(_DEBUG)
 	std::cout << "Debug Mode Activated!" << std::endl;
 #endif
 
-	sf::RenderWindow window;
-	// in Windows at least, this must be called before creating the window
-	float screenScalingFactor = platform.getScreenScalingFactor(window.getSystemHandle());
-	const float screentWidth = 800.0f * screenScalingFactor;
-	const float screenHeight = 600.0f * screenScalingFactor;
-	// Use the screenScalingFactor
-	window.create(sf::VideoMode(screentWidth, screenHeight), "SFML works!", sf::Style::Titlebar | sf::Style::Close);
-	platform.setIcon(window.getSystemHandle());
+	//Init the window
+	this->window = new sf::RenderWindow(sf::VideoMode(screentWidth, screenHeight), "Polygon Survivors", sf::Style::Titlebar | sf::Style::Close);
+	this->window->setFramerateLimit(144);
+	this->window->setVerticalSyncEnabled(false);
+	platform.setIcon(this->window->getSystemHandle());
+}
 
+void Game::InitPlayer()
+{
+	this->player = new Player();
+}
+
+void Game::Update()
+{
+	//Event Polling
 	sf::Event event;
-
-	//Game Loop
-	while (window.isOpen())
+	while (this->window->pollEvent(event))
 	{
-		//Event Polling
-		while (window.pollEvent(event))
+		switch (event.type)
 		{
-			switch (event.type)
-			{
-				case sf::Event::Closed:
-					window.close();
-					break;
-				default:
-					break;
-			}
+			case sf::Event::Closed:
+				this->window->close();
+				break;
+			default:
+				break;
 		}
+	}
+}
 
-		//Update
+void Game::Render()
+{
+	//clear previous frame
+	this->window->clear();
 
-		//Render
-		window.clear(); //clear previous frame
+	//draw the game
+	this->window->display();
+}
 
-		sf::Texture playerTexture;
-		sf::Sprite playerSprite;
-
-		if (!playerTexture.loadFromFile("Resources/Texture/Character/player.png"))
-		{
-			std::cout << "Error! Player texture not found!" << std::endl;
-		}
-		else
-		{
-			playerSprite.setTexture(playerTexture);
-			playerSprite.scale(sf::Vector2f(0.25f, 0.25f));
-			playerSprite.setOrigin(sf::Vector2f(playerSprite.getTexture()->getSize().x * 0.5f, playerSprite.getTexture()->getSize().y * 0.5f));
-			playerSprite.setPosition(sf::Vector2f(screentWidth * 0.5f, screenHeight * 0.5f));
-		}
-
-		window.draw(playerSprite);
-
-		//Draw the game
-		window.display();
+void Game::Run()
+{
+	//Game Loop
+	while (this->window->isOpen())
+	{
+		Update();
+		Render();
 	}
 }
