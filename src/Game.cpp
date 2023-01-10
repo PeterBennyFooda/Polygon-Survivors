@@ -1,5 +1,4 @@
 #include "Game.h"
-#include <catch2/catch.hpp>
 
 Game::Game()
 {
@@ -15,10 +14,6 @@ Game::~Game()
 
 void Game ::Init()
 {
-#if defined(_DEBUG)
-	std::cout << "Debug Mode Activated!" << std::endl;
-#endif
-
 	//Init the window
 	this->window = new sf::RenderWindow(sf::VideoMode(screentWidth, screenHeight), "Polygon Survivors", sf::Style::Titlebar | sf::Style::Close);
 	this->window->setFramerateLimit(144);
@@ -31,9 +26,8 @@ void Game::InitPlayer()
 	this->player = new Player();
 }
 
-void Game::Update()
+void Game::PollingEvent()
 {
-	//Event Polling
 	sf::Event event;
 	while (this->window->pollEvent(event))
 	{
@@ -48,10 +42,16 @@ void Game::Update()
 	}
 }
 
+void Game::Update()
+{
+	PollingEvent();
+}
+
 void Game::Render()
 {
 	//clear previous frame
 	this->window->clear();
+	this->player->Render(this->window);
 
 	//draw the game
 	this->window->display();

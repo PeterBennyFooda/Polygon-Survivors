@@ -1,16 +1,16 @@
 #pragma once
+#include "Component/Sprite2DComponent.h"
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
 class Player
 {
 private:
-	sf::Texture playerTexture;
-	sf::Sprite playerSprite;
+	const std::string texturePath = "Resources/Texture/Character/player.png";
+	Sprite2DComponent* sprite;
 
 	//Functions
-	bool SetTexture();
-	void SetSprite();
+	void Init();
 
 public:
 	Player();
@@ -18,5 +18,5 @@ public:
 
 	//Functions
 	void Update();
-	void Render(sf::RenderTarget& target);
+	void Render(sf::RenderWindow* target);
 };

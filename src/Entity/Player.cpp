@@ -2,41 +2,23 @@
 
 Player::Player()
 {
-	if (SetTexture())
-	{
-		SetSprite();
-	}
+	this->sprite = new Sprite2DComponent(texturePath);
 }
 
 Player::~Player()
 {
+	delete this->sprite;
 }
 
 void Player::Update()
 {
 }
 
-void Player::Render(sf::RenderTarget& target)
+void Player::Render(sf::RenderWindow* target)
 {
-	target.draw(playerSprite);
+	this->sprite->Render(target);
 }
 
-bool Player::SetTexture()
+void Player::Init()
 {
-	if (!playerTexture.loadFromFile("Resources/Texture/Character/player.png"))
-	{
-		std::cout << "Error! Player texture not found!" << std::endl;
-		return false;
-	}
-	else
-	{
-		return true;
-	}
-}
-
-void Player::SetSprite()
-{
-	playerSprite.setTexture(playerTexture);
-	playerSprite.scale(sf::Vector2f(0.25f, 0.25f));
-	playerSprite.setOrigin(sf::Vector2f(playerSprite.getTexture()->getSize().x * 0.5f, playerSprite.getTexture()->getSize().y * 0.5f));
 }

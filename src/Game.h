@@ -1,21 +1,23 @@
 #pragma once
 #include "Entity/Player.h"
 #include "Platform/Platform.hpp"
+#include <catch2/catch.hpp>
 
 class Game
 {
 private:
 	//Window
-	sf::RenderWindow* window;
-	util::Platform platform;
 	const float screentWidth = 800.0f;
 	const float screenHeight = 600.0f;
+	sf::RenderWindow* window;
+	util::Platform platform;
 
 	//Player
 	Player* player;
 
 	void Init();
 	void InitPlayer();
+	void PollingEvent();
 
 public:
 	Game();
