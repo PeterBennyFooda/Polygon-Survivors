@@ -9,7 +9,6 @@ Game::Game()
 Game::~Game()
 {
 	delete this->window;
-	delete this->player;
 }
 
 void Game ::Init()
@@ -23,7 +22,6 @@ void Game ::Init()
 
 void Game::InitPlayer()
 {
-	this->player = new Player();
 }
 
 void Game::PollingEvent()
@@ -51,7 +49,6 @@ void Game::Render()
 {
 	//clear previous frame
 	this->window->clear();
-	this->player->Render(this->window);
 
 	//draw the game
 	this->window->display();
