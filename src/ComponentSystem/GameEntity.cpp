@@ -1,6 +1,9 @@
 #include "GameEntity.h"
 
-bool GameEntity::IsAlive()
+namespace ComponentSystem
+{
+
+bool GameEntity::IsAlive() const
 {
 	return alive;
 }
@@ -10,11 +13,11 @@ void GameEntity::Destroy()
 	alive = false;
 }
 
-void GameEntity::Update()
+void GameEntity::Update(float mFT)
 {
 	for (auto& c : components)
 	{
-		c->Update();
+		c->Update(mFT);
 	}
 }
 
@@ -26,22 +29,20 @@ void GameEntity::Render()
 	}
 }
 
-template <typename T, typename... TArgs>
-T& GameEntity::AddComponent(TArgs&&... mArgs)
+bool GameEntity::HasGroup(Group group) const noexcept
 {
-	//allocate component of type 'T' on the HEAP
-	//and forward the arguments to its constructor
-	T* c(new T(std::forward<TArgs>(mArgs)...));
+	return groupBitset[group];
+}
 
-	//set the parent of the component to this instance
-	c->entity = this;
+void GameEntity::AddGroup(Group group) noexcept
+{
+	groupBitset[group] = true;
+	manager.AddToGroup(this, group);
+}
 
-	//wrap raw pointer to smart pointer
-	std::unique_ptr<Component> uPtr(c);
+void GameEntity::DeleteGroup(Group group) noexcept
+{
+	groupBitset[group] = false;
+}
 
-	//add the smart pointer to the 'components' container
-	//also, smart pointer is not copyable so we must move it
-	components.emplace_back(std::move(uPtr));
-
-	return *c;
 }
