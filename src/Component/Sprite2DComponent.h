@@ -1,7 +1,7 @@
 #pragma once
 #include "IComponent.h"
 
-class Sprite2DComponent : public IComponent
+class Sprite2DComponent
 {
 private:
 	sf::Texture texture;
