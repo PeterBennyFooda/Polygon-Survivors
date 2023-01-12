@@ -181,6 +181,7 @@ public:
 
 	void Update(float mFT)
 	{
+		UNUSED(mFT);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) && physics->left() > 0)
 			transform->Velocity.x = -playerSpeed;
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) && physics->right() < physics->BorderWidth)

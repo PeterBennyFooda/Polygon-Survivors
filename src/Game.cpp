@@ -53,7 +53,7 @@ void Game::Update()
 {
 	PollingEvent();
 	manager.Refresh();
-	manager.Update(1.f);
+	manager.Update(0.16f);
 }
 
 void Game::Render()
