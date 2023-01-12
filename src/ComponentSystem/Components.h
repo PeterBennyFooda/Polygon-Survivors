@@ -13,28 +13,6 @@ struct CCounter : Component
 	}
 };
 
-struct CKillCounter : Component
-{
-	CCounter* Counter;
-
-	~CKillCounter() override
-	{
-		delete Counter;
-	}
-
-	void Init() override
-	{
-		Counter = &Entity->GetComponent<CCounter>();
-	}
-
-	void Update(float mFT) override
-	{
-		UNUSED(mFT);
-		if (Counter->Counter >= 100)
-			Entity->Destroy();
-	}
-};
-
 struct CTransform : Component
 {
 	sf::Vector2f Position;
@@ -107,48 +85,57 @@ struct CSprite2D : Component
 
 struct CPhysics : Component
 {
-	CTransform* cTransform { nullptr };
-	sf::Vector2f velocity, halfSize;
-	float windowWidth, windowHeight;
+private:
+	CTransform* transform { nullptr };
+	sf::Vector2f halfSize;
 
+public:
 	// Use a callback to handle the "out of bounds" event.
 	std::function<void(const sf::Vector2f&)> OnOutOfBounds;
+	float BorderWidth, BorderHeight;
 
-	CPhysics(const sf::Vector2f& mHalfSize) :
-		halfSize { mHalfSize }
+	CPhysics(const sf::Vector2f& mHalfSize, const float mBorderX, const float mBorderY) :
+		halfSize(mHalfSize),
+		BorderWidth(mBorderX),
+		BorderHeight(mBorderY)
 	{}
+
+	~CPhysics()
+	{
+		delete transform;
+	}
 
 	void Init() override
 	{
 		// `CPhysics` obviously requires `CTransform`.
-		cTransform = &Entity->GetComponent<CTransform>();
+		transform = &Entity->GetComponent<CTransform>();
 	}
 
 	void Update(float mFT) override
 	{
-		cTransform->Position += velocity * mFT;
+		transform->Position += transform->Velocity * mFT;
 
 		if (OnOutOfBounds == nullptr)
 			return;
 
 		if (left() < 0)
 			OnOutOfBounds(sf::Vector2f { 1.f, 0.f });
-		else if (right() > windowWidth)
+		else if (right() > BorderWidth)
 			OnOutOfBounds(sf::Vector2f { -1.f, 0.f });
 
 		if (top() < 0)
 			OnOutOfBounds(sf::Vector2f { 0.f, 1.f });
-		else if (bottom() > windowHeight)
+		else if (bottom() > BorderHeight)
 			OnOutOfBounds(sf::Vector2f { 0.f, -1.f });
 	}
 
 	float x() const noexcept
 	{
-		return cTransform->Position.x;
+		return transform->Position.x;
 	}
 	float y() const noexcept
 	{
-		return cTransform->Position.y;
+		return transform->Position.y;
 	}
 	float left() const noexcept
 	{
@@ -165,6 +152,41 @@ struct CPhysics : Component
 	float bottom() const noexcept
 	{
 		return y() + halfSize.y;
+	}
+};
+
+struct CPlayerControl : Component
+{
+private:
+	CPhysics* physics { nullptr };
+	CTransform* transform { nullptr };
+	float playerSpeed;
+
+public:
+	CPlayerControl(const float& mPlayerSpeed) :
+		playerSpeed(mPlayerSpeed)
+	{}
+
+	~CPlayerControl()
+	{
+		delete physics;
+		delete transform;
+	}
+
+	void Init() override
+	{
+		physics = &Entity->GetComponent<CPhysics>();
+		transform = &Entity->GetComponent<CTransform>();
+	}
+
+	void Update(float mFT)
+	{
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) && physics->left() > 0)
+			transform->Velocity.x = -playerSpeed;
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) && physics->right() < physics->BorderWidth)
+			transform->Velocity.x = playerSpeed;
+		else
+			transform->Velocity.x = 0;
 	}
 };
 

@@ -27,7 +27,10 @@ void Game::InitPlayer()
 	std::string path = "Resources/Texture/Character/player.png";
 
 	entity.AddComponent<CTransform>(sf::Vector2f(screentWidth / 2, screenHeight / 2));
-	entity.AddComponent<CSprite2D>(path, window);
+	auto& playerSprite(entity.AddComponent<CSprite2D>(path, window));
+	sf::Vector2f halfSize(playerSprite.Sprite.getOrigin());
+	entity.AddComponent<CPhysics>(halfSize, screentWidth, screenHeight);
+	entity.AddComponent<CPlayerControl>(0.6f);
 }
 
 void Game::PollingEvent()
