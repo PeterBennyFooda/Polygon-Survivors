@@ -1,9 +1,22 @@
 #pragma once
 #include "EntityManager.h"
 
+/////////////////////////////////////////////////
+///
+///This file defines all the components.
+///Users can extend this list by adding custom components.
+///
+/////////////////////////////////////////////////
 namespace ComponentSystem
 {
 
+/*
+ * This Component is a simple counter based
+ * on frame time.
+ *
+ * We can use this counter to test if the
+ * component system is working.
+ */
 struct CCounter : Component
 {
 	float Counter;
@@ -13,6 +26,14 @@ struct CCounter : Component
 	}
 };
 
+/*
+ * This Component records position, velocity
+ * and size of an entity.
+ *
+ * We can use this compoenet to grant an entity
+ * the basic information to interact with the world
+ * and other entities.
+ */
 struct CTransform : Component
 {
 	sf::Vector2f Position;
@@ -30,6 +51,16 @@ struct CTransform : Component
 	{}
 };
 
+/*
+ * This Component makes an entity visble in the world.
+ *
+ * We can use this compoenet to give an entity fancy
+ * texture which is way better than plain colors.
+ *
+ * Also, SFML sprite is not just sprite. We can scale
+ * it and change its position so it's actually a game
+ * object like rectangle and circle.
+ */
 struct CSprite2D : Component
 {
 private:
@@ -87,6 +118,12 @@ public:
 	}
 };
 
+/*
+ * This Component makes an entity collidable.
+ *
+ * We can use this compoenet to give an entity very
+ * basic collider and moving force based on its velocity.
+ */
 struct CPhysics : Component
 {
 private:
@@ -111,7 +148,7 @@ public:
 
 	void Init() override
 	{
-		// `CPhysics` obviously requires `CTransform`.
+		//'CPhysics' obviously requires 'CTransform'.
 		transform = &Entity->GetComponent<CTransform>();
 	}
 
@@ -162,6 +199,12 @@ public:
 	}
 };
 
+/*
+ * This Component is player controller.
+ *
+ * We can use this compoenet to make an entity
+ * controlled by the player.
+ */
 struct CPlayerControl : Component
 {
 private:
