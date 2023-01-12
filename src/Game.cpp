@@ -1,4 +1,5 @@
 #include "Game.h"
+using namespace ComponentSystem;
 
 Game::Game()
 {
@@ -22,6 +23,11 @@ void Game ::Init()
 
 void Game::InitPlayer()
 {
+	auto& entity = manager.AddEntity();
+	std::string path = "Resources/Texture/Character/player.png";
+
+	entity.AddComponent<CTransform>(sf::Vector2f(screentWidth / 2, screenHeight / 2));
+	entity.AddComponent<CSprite2D>(path, window);
 }
 
 void Game::PollingEvent()
@@ -43,12 +49,16 @@ void Game::PollingEvent()
 void Game::Update()
 {
 	PollingEvent();
+	manager.Refresh();
+	manager.Update(1.f);
 }
 
 void Game::Render()
 {
 	//clear previous frame
 	this->window->clear();
+
+	manager.Render();
 
 	//draw the game
 	this->window->display();

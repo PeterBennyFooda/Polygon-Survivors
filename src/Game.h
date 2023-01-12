@@ -1,4 +1,6 @@
 #pragma once
+#include "ComponentSystem/Components.h"
+#include "ComponentSystem/EntityManager.h"
 #include "Platform/Platform.hpp"
 #include <catch2/catch.hpp>
 
@@ -10,6 +12,7 @@ private:
 	const float screenHeight = 600.0f;
 	sf::RenderWindow* window;
 	util::Platform platform;
+	ComponentSystem::EntityManager manager;
 
 	void Init();
 	void InitPlayer();
