@@ -32,38 +32,42 @@ struct CTransform : Component
 
 struct CSprite2D : Component
 {
+private:
+	sf::RenderWindow* target { nullptr };
+	CTransform* transform { nullptr };
+
+public:
 	sf::Texture Texture;
 	sf::Sprite Sprite;
-	sf::RenderWindow* Target { nullptr };
-	CTransform* Transform { nullptr };
 
 	CSprite2D() = default;
 	CSprite2D(std::string filePath, sf::RenderWindow* window)
 	{
 		SetTexture(filePath);
-		Target = window;
+		target = window;
 	}
 
 	~CSprite2D()
 	{
-		delete Target;
-		delete Transform;
+		delete target;
+		delete transform;
 	}
 
 	void Init() override
 	{
-		Transform = &Entity->GetComponent<CTransform>();
-		Sprite.setPosition(Transform->Position);
+		transform = &Entity->GetComponent<CTransform>();
+		Sprite.setPosition(transform->Position);
 	}
 
 	void Update(float mFT) override
 	{
 		UNUSED(mFT);
+		Sprite.setPosition(transform->Position);
 	}
 
 	void Render() override
 	{
-		Target->draw(Sprite);
+		target->draw(Sprite);
 	}
 
 	bool SetTexture(std::string filepath)
@@ -118,14 +122,14 @@ public:
 		if (OnOutOfBounds == nullptr)
 			return;
 
-		if (left() < 0)
+		if (Left() < 0)
 			OnOutOfBounds(sf::Vector2f { 1.f, 0.f });
-		else if (right() > BorderWidth)
+		else if (Right() > BorderWidth)
 			OnOutOfBounds(sf::Vector2f { -1.f, 0.f });
 
-		if (top() < 0)
+		if (Top() < 0)
 			OnOutOfBounds(sf::Vector2f { 0.f, 1.f });
-		else if (bottom() > BorderHeight)
+		else if (Bottom() > BorderHeight)
 			OnOutOfBounds(sf::Vector2f { 0.f, -1.f });
 	}
 
@@ -137,19 +141,22 @@ public:
 	{
 		return transform->Position.y;
 	}
-	float left() const noexcept
+
+	float Left() const noexcept
 	{
 		return x() - halfSize.x;
 	}
-	float right() const noexcept
+	float Right() const noexcept
 	{
 		return x() + halfSize.x;
 	}
-	float top() const noexcept
+
+	//Note: In SFML origin (0,0) is at the top left corner.
+	float Top() const noexcept
 	{
 		return y() - halfSize.y;
 	}
-	float bottom() const noexcept
+	float Bottom() const noexcept
 	{
 		return y() + halfSize.y;
 	}
@@ -182,12 +189,20 @@ public:
 	void Update(float mFT)
 	{
 		UNUSED(mFT);
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) && physics->left() > 0)
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) && physics->Left() > 0)
 			transform->Velocity.x = -playerSpeed;
-		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) && physics->right() < physics->BorderWidth)
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) && physics->Right() < physics->BorderWidth)
 			transform->Velocity.x = playerSpeed;
 		else
 			transform->Velocity.x = 0;
+
+		//Note: In SFML origin (0,0) is at the top left corner.
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && physics->Top() > 0)
+			transform->Velocity.y = -playerSpeed;
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) && physics->Bottom() < physics->BorderHeight)
+			transform->Velocity.y = playerSpeed;
+		else
+			transform->Velocity.y = 0;
 	}
 };
 

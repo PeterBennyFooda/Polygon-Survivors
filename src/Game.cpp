@@ -30,7 +30,7 @@ void Game::InitPlayer()
 	auto& playerSprite(entity.AddComponent<CSprite2D>(path, window));
 	sf::Vector2f halfSize(playerSprite.Sprite.getOrigin());
 	entity.AddComponent<CPhysics>(halfSize, screentWidth, screenHeight);
-	entity.AddComponent<CPlayerControl>(0.6f);
+	entity.AddComponent<CPlayerControl>(10.f);
 }
 
 void Game::PollingEvent()
