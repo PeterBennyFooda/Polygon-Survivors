@@ -1,6 +1,8 @@
 #pragma once
 #include "ComponentSystem/Components.h"
 #include "ComponentSystem/EntityManager.h"
+#include "EntityFactory.h"
+#include "GlobalGameSettings.h"
 #include "Platform/Platform.hpp"
 #include <catch2/catch.hpp>
 #include <chrono>
@@ -13,12 +15,8 @@
 class Game
 {
 private:
-	//Window
-	const float screentWidth = 800.0f;
-	const float screenHeight = 600.0f;
-
-	const float ftSlice { 0.06f }; //The time slice length we want to update our game logic one time in.
-	const float ftStep { 0.06f };  //Should be the same as 'ftSlice'. The time actually passed to the game logic, making sure we have constant result.
+	const float ftSlice { 0.02f }; //The time slice length we want to update our game logic one time in.
+	const float ftStep { 0.02f };  //Should be the same as 'ftSlice'. The time actually passed to the game logic, making sure we have constant result.
 	float lastFrameTime { 0.f };
 	float currentSlice { 0.f };
 
@@ -30,7 +28,9 @@ private:
 
 	sf::RenderWindow* window;
 	util::Platform platform;
+
 	ComponentSystem::EntityManager manager;
+	EntityFactory* entityFactory;
 
 	void Init();
 	void InitLevel();

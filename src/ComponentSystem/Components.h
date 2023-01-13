@@ -249,4 +249,58 @@ public:
 	}
 };
 
+/*
+ * This Component is enemy controller.
+ *
+ * Enemies with this componenet only move
+ * toward a target transform no mater what.
+ */
+struct CSimpleEnemyControl : Component
+{
+private:
+	CPhysics* physics { nullptr };
+	CTransform* transform { nullptr };
+
+	sf::Vector2f direction;
+	float enemySpeed;
+	sf::Vector2f targetPos;
+
+public:
+	CSimpleEnemyControl(const float& mEnemySpeed, const sf::Vector2f& mTarget) :
+		enemySpeed(mEnemySpeed),
+		targetPos(mTarget)
+	{}
+
+	~CSimpleEnemyControl()
+	{
+		delete physics;
+		delete transform;
+	}
+
+	void Init() override
+	{
+		physics = &Entity->GetComponent<CPhysics>();
+		transform = &Entity->GetComponent<CTransform>();
+	}
+
+	void Update(float mFT) override
+	{
+		UNUSED(mFT);
+		direction = targetPos - transform->Position;
+
+		//The length of the vector
+		float length = sqrt((direction.x * direction.x) + (direction.y * direction.y));
+		if (length != 0)
+		{
+			float normalX = direction.x / length;
+			float normalY = direction.y / length;
+			sf::Vector2f directionNormalized(normalX, normalY);
+			direction = directionNormalized;
+		}
+
+		transform->Velocity.x += direction.x;
+		transform->Velocity.y += direction.y;
+	}
+};
+
 }

@@ -6,17 +6,19 @@ Game::Game()
 {
 	Init();
 	InitPlayer();
+	InitEnemy();
 }
 
 Game::~Game()
 {
 	delete this->window;
+	delete this->entityFactory;
 }
 
 void Game ::Init()
 {
 	//Init the window.
-	this->window = new sf::RenderWindow(sf::VideoMode(screentWidth, screenHeight), "Polygon Survivors", sf::Style::Titlebar | sf::Style::Close);
+	this->window = new sf::RenderWindow(sf::VideoMode(ScreentWidth, ScreenHeight), "Polygon Survivors", sf::Style::Titlebar | sf::Style::Close);
 	this->window->setFramerateLimit(144);
 	this->window->setVerticalSyncEnabled(false);
 	platform.setIcon(this->window->getSystemHandle());
@@ -24,18 +26,29 @@ void Game ::Init()
 	//For calculating delta time.
 	timePoint1 = std::chrono::steady_clock::now();
 	timePoint2 = std::chrono::steady_clock::now();
+
+	//Create entity manager and factory.
+	this->entityFactory = new EntityFactory(manager);
 }
 
 void Game::InitPlayer()
 {
-	auto& entity = manager.AddEntity();
-	string path = "Resources/Texture/Character/player.png";
+	entityFactory->CreatePlayer(sf::Vector2f(ScreentWidth / 2, ScreenHeight / 2), this->window);
+}
 
-	entity.AddComponent<CTransform>(sf::Vector2f(screentWidth / 2, screenHeight / 2));
-	auto& playerSprite(entity.AddComponent<CSprite2D>(path, window));
-	sf::Vector2f halfSize(playerSprite.Sprite.getOrigin());
-	entity.AddComponent<CPhysics>(halfSize, screentWidth, screenHeight);
-	entity.AddComponent<CPlayerControl>(1.f);
+void Game::InitEnemy()
+{
+	default_random_engine generator(time(NULL));
+	uniform_real_distribution<float> unif(-300, 300);
+	float randomOffestX = unif(generator);
+	float randomOffestY = unif(generator);
+
+	for (int i = 0; i < 5; i++)
+	{
+		entityFactory->CreateEnemy(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), this->window);
+		randomOffestX = unif(generator);
+		randomOffestY = unif(generator);
+	}
 }
 
 void Game::PollingEvent()
@@ -66,13 +79,15 @@ void Game::FixedUpdate()
 	{
 		//Passing 'ftStep' instead of 'lastFrameTime' because
 		//we want to ensure the ideal 'frame time' is constant.
+		manager.Refresh();
+		manager.Update(ftStep);
 	}
 }
 
 void Game::Update()
 {
-	manager.Refresh();
-	manager.Update(lastFrameTime);
+	// manager.Refresh();
+	// manager.Update(lastFrameTime);
 }
 
 void Game::Render()
