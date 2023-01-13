@@ -18,6 +18,8 @@ enum EnemyMoveType
 };
 
 /*
+ * (1) CCounter
+ *
  * This Component is a simple counter based
  * on frame time.
  *
@@ -34,6 +36,8 @@ struct CCounter : Component
 };
 
 /*
+ * (2) CTransform
+ *
  * This Component records position, velocity
  * and size of an entity.
  *
@@ -59,7 +63,7 @@ struct CTransform : Component
 };
 
 /*
- * This Component makes an entity visble in the world.
+ * (3) CSprite2D
  *
  * We can use this compoenet to give an entity fancy
  * texture which is way better than plain colors.
@@ -126,6 +130,8 @@ public:
 };
 
 /*
+ * (4) CPhysics
+ *
  * This Component makes an entity collidable.
  *
  * We can use this compoenet to give an entity very
@@ -135,15 +141,15 @@ struct CPhysics : Component
 {
 private:
 	CTransform* transform { nullptr };
-	sf::Vector2f halfSize;
 
 public:
 	// Use a callback to handle the "out of bounds" event.
 	std::function<void(const sf::Vector2f&)> OnOutOfBounds;
+	sf::Vector2f HalfSize;
 	float BorderWidth, BorderHeight;
 
 	CPhysics(const sf::Vector2f& mHalfSize, const float mBorderX, const float mBorderY) :
-		halfSize(mHalfSize),
+		HalfSize(mHalfSize),
 		BorderWidth(mBorderX),
 		BorderHeight(mBorderY)
 	{}
@@ -188,25 +194,27 @@ public:
 
 	float Left() const noexcept
 	{
-		return x() - halfSize.x;
+		return x() - HalfSize.x;
 	}
 	float Right() const noexcept
 	{
-		return x() + halfSize.x;
+		return x() + HalfSize.x;
 	}
 
 	//Note: In SFML origin (0,0) is at the top left corner.
 	float Top() const noexcept
 	{
-		return y() - halfSize.y;
+		return y() - HalfSize.y;
 	}
 	float Bottom() const noexcept
 	{
-		return y() + halfSize.y;
+		return y() + HalfSize.y;
 	}
 };
 
 /*
+ * (5) CPlayerControl
+ *
  * This Component is player controller.
  *
  * We can use this compoenet to make an entity
@@ -235,55 +243,84 @@ public:
 	{
 		physics = &Entity->GetComponent<CPhysics>();
 		transform = &Entity->GetComponent<CTransform>();
+
+		//Register out of bound event to prevent player from going out of borders.
+		physics->OnOutOfBounds = [this](const sf::Vector2f& mSide) {
+			this->OnOutOfBoundsEvent(mSide);
+		};
 	}
 
 	void Update(float mFT)
 	{
 		UNUSED(mFT);
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) && physics->Left() > 0)
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
 			transform->Velocity.x = -PlayerSpeed;
-		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) && physics->Right() < physics->BorderWidth)
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
 			transform->Velocity.x = PlayerSpeed;
 		else
 			transform->Velocity.x = 0;
 
 		//Note: In SFML origin (0,0) is at the top left corner.
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && physics->Top() > 0)
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
 			transform->Velocity.y = -PlayerSpeed;
-		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) && physics->Bottom() < physics->BorderHeight)
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
 			transform->Velocity.y = PlayerSpeed;
 		else
 			transform->Velocity.y = 0;
 	}
+
+	void OnOutOfBoundsEvent(const sf::Vector2f& mSide)
+	{
+		if (mSide.x != 0.f)
+		{
+			transform->Velocity.x = 0;
+			if (mSide.x == 1)
+				transform->Position.x = physics->HalfSize.x;
+			else if (mSide.x == -1)
+				transform->Position.x = physics->BorderWidth - physics->HalfSize.x;
+		}
+
+		if (mSide.y != 0.f)
+		{
+			transform->Velocity.y = 0;
+			if (mSide.y == 1)
+				transform->Position.y = physics->HalfSize.y;
+			else if (mSide.y == -1)
+				transform->Position.y = physics->BorderHeight - physics->HalfSize.y;
+		}
+	}
 };
 
 /*
+ * (6) CSimpleEnemyControl
+ *
  * This Component is enemy controller.
  *
- * Enemies with this componenet only move
- * toward a target transform no mater what.
+ * Enemies with this componenet have
+ * some simple movesets and AI logic.
  */
 struct CSimpleEnemyControl : Component
 {
+public:
+	float EnemySpeed;
+
 private:
 	const float avoidRadius { 200.f };
 
 	CPhysics* physics { nullptr };
 	CTransform* transform { nullptr };
 	sf::Vector2f direction;
-
-public:
-	float enemySpeed;
 	sf::Vector2f& targetPos; //Refernce of the target position so we can keep tracking it.
 	EnemyMoveType moveType { EnemyMoveType::ChasePlayer };
 
+public:
 	CSimpleEnemyControl(const float mEnemySpeed, sf::Vector2f& mTarget) :
-		enemySpeed(mEnemySpeed),
+		EnemySpeed(mEnemySpeed),
 		targetPos(mTarget)
 	{}
 
 	CSimpleEnemyControl(const float& mEnemySpeed, sf::Vector2f& mTarget, EnemyMoveType mMoveType) :
-		enemySpeed(mEnemySpeed),
+		EnemySpeed(mEnemySpeed),
 		targetPos(mTarget),
 		moveType(mMoveType)
 	{}
@@ -303,9 +340,14 @@ public:
 		//need to set a initial force.
 		if (moveType == EnemyMoveType::PingPong)
 		{
-			transform->Velocity.x = enemySpeed;
-			transform->Velocity.y = enemySpeed;
+			transform->Velocity.x = EnemySpeed;
+			transform->Velocity.y = EnemySpeed;
 		}
+
+		//Register out of bound event to prevent enemy from going out of borders.
+		physics->OnOutOfBounds = [this](const sf::Vector2f& mSide) {
+			this->OnOutOfBoundsEvent(mSide);
+		};
 	}
 
 	void Update(float mFT) override
@@ -344,8 +386,8 @@ public:
 			direction = directionNormalized;
 		}
 
-		transform->Velocity.x = enemySpeed * direction.x;
-		transform->Velocity.y = enemySpeed * direction.y;
+		transform->Velocity.x = EnemySpeed * direction.x;
+		transform->Velocity.y = EnemySpeed * direction.y;
 	}
 
 	void AvoidPlayerMove()
@@ -357,6 +399,7 @@ public:
 		//The length of the vector
 		float length = sqrt((direction.x * direction.x) + (direction.y * direction.y));
 		float distance = length < 0 ? length * -1 : length;
+
 		if (length != 0)
 		{
 			float normalX = direction.x / length;
@@ -367,8 +410,8 @@ public:
 
 		if (distance <= avoidRadius)
 		{
-			transform->Velocity.x = enemySpeed * -direction.x;
-			transform->Velocity.y = enemySpeed * -direction.y;
+			transform->Velocity.x = EnemySpeed * -direction.x;
+			transform->Velocity.y = EnemySpeed * -direction.y;
 		}
 		PingPongMove();
 	}
@@ -376,15 +419,39 @@ public:
 	void PingPongMove()
 	{
 		if (physics->Left() <= 0.1f)
-			transform->Velocity.x = enemySpeed;
+			transform->Velocity.x = EnemySpeed;
 		else if (physics->Right() >= physics->BorderWidth - 0.1f)
-			transform->Velocity.x = -enemySpeed;
+			transform->Velocity.x = -EnemySpeed;
 
 		//Note: In SFML origin (0,0) is at the top left corner.
 		if (physics->Top() <= 0.1f)
-			transform->Velocity.y = enemySpeed;
+			transform->Velocity.y = EnemySpeed;
 		else if (physics->Bottom() >= physics->BorderHeight - 0.1f)
-			transform->Velocity.y = -enemySpeed;
+			transform->Velocity.y = -EnemySpeed;
+	}
+
+	void OnOutOfBoundsEvent(const sf::Vector2f& mSide)
+	{
+		if (moveType == EnemyMoveType::PingPong)
+			return;
+
+		if (mSide.x != 0.f)
+		{
+			transform->Velocity.x = 0;
+			if (mSide.x == 1)
+				transform->Position.x = physics->HalfSize.x;
+			else if (mSide.x == -1)
+				transform->Position.x = physics->BorderWidth - physics->HalfSize.x;
+		}
+
+		if (mSide.y != 0.f)
+		{
+			transform->Velocity.y = 0;
+			if (mSide.y == 1)
+				transform->Position.y = physics->HalfSize.y;
+			else if (mSide.y == -1)
+				transform->Position.y = physics->BorderHeight - physics->HalfSize.y;
+		}
 	}
 };
 

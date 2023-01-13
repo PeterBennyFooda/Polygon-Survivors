@@ -40,6 +40,8 @@ private:
 	void PollingEvent();
 
 public:
+	bool UseDeltaTime { false };
+
 	Game();
 	virtual ~Game();
 

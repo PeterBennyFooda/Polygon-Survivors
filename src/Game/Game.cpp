@@ -67,7 +67,7 @@ void Game::InitEnemy()
 	{
 		entityFactory->CreateEnemy(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
 			this->window,
-			1.5f,
+			0.75f,
 			EnemyMoveType::PingPong);
 		randomOffestX = unif(generator);
 		randomOffestY = unif(generator);
@@ -92,6 +92,9 @@ void Game::PollingEvent()
 
 void Game::FixedUpdate()
 {
+	if (UseDeltaTime)
+		return;
+
 	//Accumulating frame time into 'currentSlice'.
 	currentSlice += lastFrameTime;
 
@@ -111,8 +114,10 @@ void Game::FixedUpdate()
 
 void Game::Update()
 {
-	// manager.Refresh();
-	// manager.Update(lastFrameTime);
+	if (!UseDeltaTime)
+		return;
+	manager.Refresh();
+	manager.Update(lastFrameTime);
 }
 
 void Game::Render()
