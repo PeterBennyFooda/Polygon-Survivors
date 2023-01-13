@@ -10,6 +10,13 @@
 namespace ComponentSystem
 {
 
+enum EnemyMoveType
+{
+	ChasePlayer,
+	AvoidPlayer,
+	PingPong
+};
+
 /*
  * This Component is a simple counter based
  * on frame time.
@@ -210,11 +217,12 @@ struct CPlayerControl : Component
 private:
 	CPhysics* physics { nullptr };
 	CTransform* transform { nullptr };
-	float playerSpeed;
 
 public:
+	float PlayerSpeed;
+
 	CPlayerControl(const float& mPlayerSpeed) :
-		playerSpeed(mPlayerSpeed)
+		PlayerSpeed(mPlayerSpeed)
 	{}
 
 	~CPlayerControl()
@@ -233,17 +241,17 @@ public:
 	{
 		UNUSED(mFT);
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) && physics->Left() > 0)
-			transform->Velocity.x = -playerSpeed;
+			transform->Velocity.x = -PlayerSpeed;
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) && physics->Right() < physics->BorderWidth)
-			transform->Velocity.x = playerSpeed;
+			transform->Velocity.x = PlayerSpeed;
 		else
 			transform->Velocity.x = 0;
 
 		//Note: In SFML origin (0,0) is at the top left corner.
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) && physics->Top() > 0)
-			transform->Velocity.y = -playerSpeed;
+			transform->Velocity.y = -PlayerSpeed;
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) && physics->Bottom() < physics->BorderHeight)
-			transform->Velocity.y = playerSpeed;
+			transform->Velocity.y = PlayerSpeed;
 		else
 			transform->Velocity.y = 0;
 	}
@@ -258,17 +266,26 @@ public:
 struct CSimpleEnemyControl : Component
 {
 private:
+	const float avoidRadius { 200.f };
+
 	CPhysics* physics { nullptr };
 	CTransform* transform { nullptr };
-
 	sf::Vector2f direction;
-	float enemySpeed;
-	sf::Vector2f targetPos;
 
 public:
-	CSimpleEnemyControl(const float& mEnemySpeed, const sf::Vector2f& mTarget) :
+	float enemySpeed;
+	sf::Vector2f& targetPos; //Refernce of the target position so we can keep tracking it.
+	EnemyMoveType moveType { EnemyMoveType::ChasePlayer };
+
+	CSimpleEnemyControl(const float mEnemySpeed, sf::Vector2f& mTarget) :
 		enemySpeed(mEnemySpeed),
 		targetPos(mTarget)
+	{}
+
+	CSimpleEnemyControl(const float& mEnemySpeed, sf::Vector2f& mTarget, EnemyMoveType mMoveType) :
+		enemySpeed(mEnemySpeed),
+		targetPos(mTarget),
+		moveType(mMoveType)
 	{}
 
 	~CSimpleEnemyControl()
@@ -281,12 +298,41 @@ public:
 	{
 		physics = &Entity->GetComponent<CPhysics>();
 		transform = &Entity->GetComponent<CTransform>();
+
+		//Since ping pong move has no target we
+		//need to set a initial force.
+		if (moveType == EnemyMoveType::PingPong)
+		{
+			transform->Velocity.x = enemySpeed;
+			transform->Velocity.y = enemySpeed;
+		}
 	}
 
 	void Update(float mFT) override
 	{
 		UNUSED(mFT);
+		switch (moveType)
+		{
+			case EnemyMoveType::ChasePlayer:
+				ChasePlayerMove();
+				break;
+			case EnemyMoveType::AvoidPlayer:
+				AvoidPlayerMove();
+				break;
+			case EnemyMoveType::PingPong:
+				PingPongMove();
+				break;
+			default:
+				ChasePlayerMove();
+				break;
+		}
+	}
+
+	void ChasePlayerMove()
+	{
 		direction = targetPos - transform->Position;
+		if (direction.x == 0 && direction.y == 0)
+			return;
 
 		//The length of the vector
 		float length = sqrt((direction.x * direction.x) + (direction.y * direction.y));
@@ -298,8 +344,47 @@ public:
 			direction = directionNormalized;
 		}
 
-		transform->Velocity.x += direction.x;
-		transform->Velocity.y += direction.y;
+		transform->Velocity.x = enemySpeed * direction.x;
+		transform->Velocity.y = enemySpeed * direction.y;
+	}
+
+	void AvoidPlayerMove()
+	{
+		direction = targetPos - transform->Position;
+		if (direction.x == 0 && direction.y == 0)
+			return;
+
+		//The length of the vector
+		float length = sqrt((direction.x * direction.x) + (direction.y * direction.y));
+		float distance = length < 0 ? length * -1 : length;
+		if (length != 0)
+		{
+			float normalX = direction.x / length;
+			float normalY = direction.y / length;
+			sf::Vector2f directionNormalized(normalX, normalY);
+			direction = directionNormalized;
+		}
+
+		if (distance <= avoidRadius)
+		{
+			transform->Velocity.x = enemySpeed * -direction.x;
+			transform->Velocity.y = enemySpeed * -direction.y;
+		}
+		PingPongMove();
+	}
+
+	void PingPongMove()
+	{
+		if (physics->Left() <= 0.1f)
+			transform->Velocity.x = enemySpeed;
+		else if (physics->Right() >= physics->BorderWidth - 0.1f)
+			transform->Velocity.x = -enemySpeed;
+
+		//Note: In SFML origin (0,0) is at the top left corner.
+		if (physics->Top() <= 0.1f)
+			transform->Velocity.y = enemySpeed;
+		else if (physics->Bottom() >= physics->BorderHeight - 0.1f)
+			transform->Velocity.y = -enemySpeed;
 	}
 };
 

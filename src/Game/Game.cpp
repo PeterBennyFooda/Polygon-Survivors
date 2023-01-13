@@ -43,9 +43,32 @@ void Game::InitEnemy()
 	float randomOffestX = unif(generator);
 	float randomOffestY = unif(generator);
 
+	//Init chasers.
 	for (int i = 0; i < 5; i++)
 	{
 		entityFactory->CreateEnemy(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), this->window);
+		randomOffestX = unif(generator);
+		randomOffestY = unif(generator);
+	}
+
+	//Init cowards.
+	for (int i = 0; i < 5; i++)
+	{
+		entityFactory->CreateEnemy(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
+			this->window,
+			3.f,
+			EnemyMoveType::AvoidPlayer);
+		randomOffestX = unif(generator);
+		randomOffestY = unif(generator);
+	}
+
+	//Init ping pong guys.
+	for (int i = 0; i < 5; i++)
+	{
+		entityFactory->CreateEnemy(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
+			this->window,
+			1.5f,
+			EnemyMoveType::PingPong);
 		randomOffestX = unif(generator);
 		randomOffestY = unif(generator);
 	}
@@ -75,12 +98,14 @@ void Game::FixedUpdate()
 	//If 'currentSlice' is greater than or equals 'ftSlice',
 	//we update the game until 'currentSlice' is less than
 	//'ftSlice'.
-	for (; currentSlice >= ftSlice; currentSlice -= ftSlice)
+	int loop = 0;
+	for (; currentSlice >= ftSlice && loop < maxLoop; currentSlice -= ftSlice)
 	{
 		//Passing 'ftStep' instead of 'lastFrameTime' because
 		//we want to ensure the ideal 'frame time' is constant.
 		manager.Refresh();
 		manager.Update(ftStep);
+		loop++;
 	}
 }
 

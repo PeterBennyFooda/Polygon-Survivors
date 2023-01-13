@@ -25,4 +25,7 @@ public:
 
 	ComponentSystem::GameEntity& CreatePlayer(const sf::Vector2f& position, sf::RenderWindow* target) noexcept;
 	ComponentSystem::GameEntity& CreateEnemy(const sf::Vector2f& position, sf::RenderWindow* target) noexcept;
+	ComponentSystem::GameEntity& CreateEnemy(const sf::Vector2f& position, sf::RenderWindow* target, const float& speedMod) noexcept;
+	ComponentSystem::GameEntity& CreateEnemy(const sf::Vector2f& position, sf::RenderWindow* target, ComponentSystem::EnemyMoveType moveType) noexcept;
+	ComponentSystem::GameEntity& CreateEnemy(const sf::Vector2f& position, sf::RenderWindow* target, const float& speedMod, ComponentSystem::EnemyMoveType moveType) noexcept;
 };

@@ -17,6 +17,7 @@ class Game
 private:
 	const float ftSlice { 0.02f }; //The time slice length we want to update our game logic one time in.
 	const float ftStep { 0.02f };  //Should be the same as 'ftSlice'. The time actually passed to the game logic, making sure we have constant result.
+	const int maxLoop { 200 };	   //Avoid updating too many time when we have really high FPS.
 	float lastFrameTime { 0.f };
 	float currentSlice { 0.f };
 
