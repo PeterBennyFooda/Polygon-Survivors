@@ -69,23 +69,23 @@ struct CTransform : Component
 struct CSprite2D : Component
 {
 private:
-	sf::RenderWindow* target { nullptr };
+	sf::RenderWindow& target;
 	CTransform* transform { nullptr };
 
 public:
 	sf::Texture Texture;
 	sf::Sprite Sprite;
+	bool Visable { true };
 
 	CSprite2D() = default;
-	CSprite2D(std::string filePath, sf::RenderWindow* window)
+	CSprite2D(std::string filePath, sf::RenderWindow* window) :
+		target(*window)
 	{
 		SetTexture(filePath);
-		target = window;
 	}
 
 	~CSprite2D()
 	{
-		delete target;
 		delete transform;
 	}
 
@@ -106,7 +106,8 @@ public:
 
 	void Render() override
 	{
-		target->draw(Sprite);
+		if (Visable)
+			target.draw(Sprite);
 	}
 
 	bool SetTexture(std::string filepath)
@@ -532,6 +533,7 @@ struct CProjectile : Component
 private:
 	CPhysics* physics { nullptr };
 	CTransform* transform { nullptr };
+	bool isDead { false };
 
 public:
 	float Speed;
@@ -563,7 +565,7 @@ public:
 	void Update(float mFT)
 	{
 		UNUSED(mFT);
-		if (Stop)
+		if (Stop || isDead)
 		{
 			physics->Velocity.x = 0;
 			physics->Velocity.y = 0;
@@ -581,13 +583,15 @@ public:
 	void Die()
 	{
 		Stop = true;
+		isDead = true;
 		Entity->Destroy();
 	}
 
 	void OnOutOfBoundsEvent(const sf::Vector2f& mSide)
 	{
 		UNUSED(mSide);
-		Die();
+		if (!isDead)
+			Die();
 	}
 };
 
