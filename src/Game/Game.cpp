@@ -42,10 +42,10 @@ void Game::InitLevel()
 
 void Game::InitPlayer()
 {
-	auto& player(entityFactory->CreatePlayer(sf::Vector2f(ScreentWidth / 2, ScreenHeight / 2), this->window));
+	auto& player(entityFactory->CreatePlayer(sf::Vector2f(ScreentWidth / 2, ScreenHeight / 2), *window));
 	auto& tPlayer(player.GetComponent<CTransform>());
 	sf::Vector2f& playerPos(tPlayer.Position);
-	this->playerWeapon = new WeaponController(WeaponType::Gun, *entityFactory, manager, window, playerPos);
+	this->playerWeapon = new WeaponController(WeaponType::Gun, *entityFactory, manager, *window, playerPos);
 }
 
 void Game::InitEnemy()
@@ -63,7 +63,7 @@ void Game::GenerateLevel()
 	//Init obstcles.
 	for (int i = 0; i < 10; i++)
 	{
-		entityFactory->CreateObstacle(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), this->window);
+		entityFactory->CreateObstacle(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), *window);
 		randomOffestX = unif(generator);
 		randomOffestY = unif(generator);
 	}
@@ -79,7 +79,7 @@ void Game::GenerateEnemy()
 	//Init chasers.
 	for (int i = 0; i < 5; i++)
 	{
-		entityFactory->CreateEnemy(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), this->window);
+		entityFactory->CreateEnemy(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), *window);
 		randomOffestX = unif(generator);
 		randomOffestY = unif(generator);
 	}
@@ -88,7 +88,7 @@ void Game::GenerateEnemy()
 	for (int i = 0; i < 5; i++)
 	{
 		entityFactory->CreateEnemy(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
-			this->window,
+			*window,
 			5.f,
 			EnemyMoveType::AvoidPlayer);
 		randomOffestX = unif(generator);
@@ -99,7 +99,7 @@ void Game::GenerateEnemy()
 	for (int i = 0; i < 5; i++)
 	{
 		entityFactory->CreateEnemy(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
-			this->window,
+			*window,
 			0.75f,
 			EnemyMoveType::PingPong);
 		randomOffestX = unif(generator);

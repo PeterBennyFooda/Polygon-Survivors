@@ -13,11 +13,11 @@ public:
 private:
 	EntityFactory& factory;
 	ComponentSystem::EntityManager& manager;
-	sf::RenderWindow* window;
+	sf::RenderWindow& window;
 	sf::Vector2f& weaponMountPoint;
 
 public:
-	WeaponController(const WeaponType mType, EntityFactory& mFactory, ComponentSystem::EntityManager& mManager, sf::RenderWindow* mWindow, sf::Vector2f& mPos) :
+	WeaponController(const WeaponType mType, EntityFactory& mFactory, ComponentSystem::EntityManager& mManager, sf::RenderWindow& mWindow, sf::Vector2f& mPos) :
 		Type(mType),
 		factory(mFactory),
 		manager(mManager),

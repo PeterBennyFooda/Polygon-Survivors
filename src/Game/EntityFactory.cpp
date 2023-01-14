@@ -2,7 +2,7 @@
 using namespace ComponentSystem;
 using namespace std;
 
-GameEntity& EntityFactory::CreatePlayer(const sf::Vector2f& position, sf::RenderWindow* target) noexcept
+GameEntity& EntityFactory::CreatePlayer(const sf::Vector2f& position, sf::RenderWindow& target) noexcept
 {
 	auto& player(manager.AddEntity());
 
@@ -19,19 +19,19 @@ GameEntity& EntityFactory::CreatePlayer(const sf::Vector2f& position, sf::Render
 	return player;
 }
 
-GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow* target) noexcept
+GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow& target) noexcept
 {
 	return CreateEnemy(position, target, 1.f, EnemyMoveType::ChasePlayer);
 }
-GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow* target, const float& speedMod) noexcept
+GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow& target, const float& speedMod) noexcept
 {
 	return CreateEnemy(position, target, speedMod, EnemyMoveType::ChasePlayer);
 }
-GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow* target, EnemyMoveType moveType) noexcept
+GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow& target, EnemyMoveType moveType) noexcept
 {
 	return CreateEnemy(position, target, 1.f, moveType);
 }
-GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow* target, const float& speedMod, EnemyMoveType moveType) noexcept
+GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow& target, const float& speedMod, EnemyMoveType moveType) noexcept
 {
 	auto& enemy(manager.AddEntity());
 
@@ -51,7 +51,7 @@ GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderW
 }
 
 ComponentSystem::GameEntity& EntityFactory::CreateProjectile(const sf::Vector2f& position, const sf::Vector2f& direction,
-	sf::RenderWindow* target, const float& speedMod) noexcept
+	sf::RenderWindow& target, const float& speedMod) noexcept
 {
 	auto& projectile(manager.AddEntity());
 
@@ -69,7 +69,7 @@ ComponentSystem::GameEntity& EntityFactory::CreateProjectile(const sf::Vector2f&
 	return projectile;
 }
 
-ComponentSystem::GameEntity& EntityFactory::CreateObstacle(const sf::Vector2f& position, sf::RenderWindow* target) noexcept
+ComponentSystem::GameEntity& EntityFactory::CreateObstacle(const sf::Vector2f& position, sf::RenderWindow& target) noexcept
 {
 	auto& obstacle(manager.AddEntity());
 

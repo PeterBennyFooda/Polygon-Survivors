@@ -38,7 +38,7 @@ void WeaponController::Attack()
 
 void WeaponController::GunAttack()
 {
-	sf::Vector2f mousePos = sf::Vector2f(sf::Mouse::getPosition(*window));
+	sf::Vector2f mousePos = sf::Vector2f(sf::Mouse::getPosition(window));
 	sf::Vector2f direction = mousePos - weaponMountPoint;
 	float length = sqrt((direction.x * direction.x) + (direction.y * direction.y));
 	if (length != 0)
@@ -48,7 +48,8 @@ void WeaponController::GunAttack()
 		sf::Vector2f directionNormalized(normalX, normalY);
 		direction = directionNormalized;
 	}
-	factory.CreateProjectile(weaponMountPoint, direction, window, 0.5f);
+	float speedTemp(0.5f);
+	factory.CreateProjectile(weaponMountPoint, direction, window, speedTemp);
 }
 
 void WeaponController::KnifeAttack()

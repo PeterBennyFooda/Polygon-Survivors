@@ -24,14 +24,23 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 
 		// if (a.HasGroup(EntityGroup::Player) && b.HasGroup(EntityGroup::Obstacle))
 		// {
-		// 	// auto& cA(a.GetComponent<CPlayerControl>());
-		// 	// cA.Stop = true;
+		// 	auto& cA(a.GetComponent<CPlayerControl>());
+		// 	cA.Stop = true;
 		// }
 		// else if (b.HasGroup(EntityGroup::Player) && a.HasGroup(EntityGroup::Obstacle))
 		// {
 		// 	auto& cB(b.GetComponent<CPlayerControl>());
 		// 	cB.Stop = true;
 		// }
+
+		if (a.HasGroup(EntityGroup::Projectile) && b.HasGroup(EntityGroup::Enemy))
+		{
+			b.Destroy();
+		}
+		else if (b.HasGroup(EntityGroup::Projectile) && a.HasGroup(EntityGroup::Enemy))
+		{
+			a.Destroy();
+		}
 	}
 	else
 	{
@@ -65,6 +74,7 @@ void CollisionManager::TestAllCollision()
 	auto& players(manager.GetEntitiesByGroup(EntityGroup::Player));
 	auto& enemies(manager.GetEntitiesByGroup(EntityGroup::Enemy));
 	auto& obstacles(manager.GetEntitiesByGroup(EntityGroup::Obstacle));
+	auto& projectiles(manager.GetEntitiesByGroup(EntityGroup::Projectile));
 
 	//Enemies only collide with players.
 	for (size_t i = 0; i < enemies.size(); i++)
@@ -87,6 +97,18 @@ void CollisionManager::TestAllCollision()
 		{
 			auto& o(obstacles[j]);
 			TestCollision(*p, *o);
+		}
+	}
+
+	//Projectiles only collide with enemies.
+	for (size_t i = 0; i < projectiles.size(); i++)
+	{
+		auto& pj(projectiles[i]);
+		//Check collisions with all enemies.
+		for (size_t j = 0; j < enemies.size(); j++)
+		{
+			auto& e(enemies[j]);
+			TestCollision(*pj, *e);
 		}
 	}
 }

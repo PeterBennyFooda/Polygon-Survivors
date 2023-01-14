@@ -78,8 +78,8 @@ public:
 	bool Visable { true };
 
 	CSprite2D() = default;
-	CSprite2D(std::string filePath, sf::RenderWindow* window) :
-		target(*window)
+	CSprite2D(std::string filePath, sf::RenderWindow& window) :
+		target(window)
 	{
 		SetTexture(filePath);
 	}
