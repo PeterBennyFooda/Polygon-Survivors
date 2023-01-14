@@ -50,7 +50,7 @@ void EntityManager::AddToGroup(GameEntity* entity, Group group)
 	groupedEntities[group].emplace_back(entity);
 }
 
-std::vector<GameEntity*>& EntityManager::GetEntityByGroup(Group group)
+std::vector<GameEntity*>& EntityManager::GetEntitiesByGroup(Group group)
 {
 	return groupedEntities[group];
 }

@@ -5,6 +5,7 @@ using namespace std;
 Game::Game()
 {
 	Init();
+	InitLevel();
 	InitPlayer();
 	InitEnemy();
 }
@@ -27,16 +28,48 @@ void Game ::Init()
 	timePoint1 = std::chrono::steady_clock::now();
 	timePoint2 = std::chrono::steady_clock::now();
 
-	//Create entity manager and factory.
+	//Create entity factory.
 	this->entityFactory = new EntityFactory(manager);
+
+	//Create collision manager.
+	this->collisionManager = new CollisionManager(manager);
+}
+
+void Game::InitLevel()
+{
+	//GenerateLevel();
 }
 
 void Game::InitPlayer()
 {
-	entityFactory->CreatePlayer(sf::Vector2f(ScreentWidth / 2, ScreenHeight / 2), this->window);
+	auto& player(entityFactory->CreatePlayer(sf::Vector2f(ScreentWidth / 2, ScreenHeight / 2), this->window));
+	auto& tPlayer(player.GetComponent<CTransform>());
+	sf::Vector2f& playerPos(tPlayer.Position);
+	this->playerWeapon = new WeaponController(WeaponType::Gun, *entityFactory, manager, window, playerPos);
 }
 
 void Game::InitEnemy()
+{
+	GenerateEnemy();
+}
+
+void Game::GenerateLevel()
+{
+	default_random_engine generator(time(NULL));
+	uniform_real_distribution<float> unif(-300, 300);
+	float randomOffestX = unif(generator);
+	float randomOffestY = unif(generator);
+
+	//Init obstcles.
+	for (int i = 0; i < 10; i++)
+	{
+		entityFactory->CreateObstacle(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), this->window);
+		randomOffestX = unif(generator);
+		randomOffestY = unif(generator);
+	}
+}
+
+void Game::GenerateEnemy()
 {
 	default_random_engine generator(time(NULL));
 	uniform_real_distribution<float> unif(-300, 300);
@@ -56,7 +89,7 @@ void Game::InitEnemy()
 	{
 		entityFactory->CreateEnemy(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
 			this->window,
-			3.f,
+			5.f,
 			EnemyMoveType::AvoidPlayer);
 		randomOffestX = unif(generator);
 		randomOffestY = unif(generator);
@@ -92,9 +125,6 @@ void Game::PollingEvent()
 
 void Game::FixedUpdate()
 {
-	if (UseDeltaTime)
-		return;
-
 	//Accumulating frame time into 'currentSlice'.
 	currentSlice += lastFrameTime;
 
@@ -104,12 +134,19 @@ void Game::FixedUpdate()
 	int loop = 0;
 	for (; currentSlice >= ftSlice && loop < maxLoop; currentSlice -= ftSlice)
 	{
+		loop++;
+		//Check physics in fixed update no matter what.
+		collisionManager->TestAllCollision();
+
+		if (UseDeltaTime)
+			continue;
 		//Passing 'ftStep' instead of 'lastFrameTime' because
 		//we want to ensure the ideal 'frame time' is constant.
 		manager.Refresh();
 		manager.Update(ftStep);
-		loop++;
+		this->playerWeapon->Update(ftStep);
 	}
+	currentSlice = 0;
 }
 
 void Game::Update()
@@ -118,6 +155,7 @@ void Game::Update()
 		return;
 	manager.Refresh();
 	manager.Update(lastFrameTime);
+	this->playerWeapon->Update(lastFrameTime);
 }
 
 void Game::Render()
@@ -156,6 +194,6 @@ void Game::Run()
 		frameTimeSeconds = (frameTime / 1000.f);
 		framePerSecond = (1.f / frameTimeSeconds);
 		window->setTitle(
-			"Polygon Survivors |||| FrameTime: " + to_string(frameTime) + " / FPS: " + to_string(framePerSecond) + " / CurrentTimeSlice: " + to_string(currentSlice));
+			"[Polygon Survivors] FrameTime: " + to_string(frameTime) + " / FPS: " + to_string(framePerSecond));
 	}
 }

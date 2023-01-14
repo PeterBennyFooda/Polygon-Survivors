@@ -14,7 +14,7 @@ GameEntity& EntityFactory::CreatePlayer(const sf::Vector2f& position, sf::Render
 	player.AddComponent<CPhysics>(halfSize, ScreentWidth, ScreenHeight);
 	player.AddComponent<CPlayerControl>(PlayerBaseSpeed);
 
-	player.AddGroup(CharacterGroup::Player);
+	player.AddGroup(EntityGroup::Player);
 
 	return player;
 }
@@ -41,11 +41,45 @@ GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderW
 	sf::Vector2f halfSize(enemySprite.Sprite.getOrigin());
 
 	enemy.AddComponent<CPhysics>(halfSize, ScreentWidth, ScreenHeight);
-	auto& players(manager.GetEntityByGroup(CharacterGroup::Player));
+	auto& players(manager.GetEntitiesByGroup(EntityGroup::Player));
 	sf::Vector2f& playerPos(players[0]->GetComponent<CTransform>().Position);
 	enemy.AddComponent<CSimpleEnemyControl>(EnemyBaseSpeed * speedMod, playerPos, moveType);
 
-	enemy.AddGroup(CharacterGroup::Enemy);
+	enemy.AddGroup(EntityGroup::Enemy);
 
 	return enemy;
+}
+
+ComponentSystem::GameEntity& EntityFactory::CreateProjectile(const sf::Vector2f& position, const sf::Vector2f& direction,
+	sf::RenderWindow* target, const float& speedMod) noexcept
+{
+	auto& projectile(manager.AddEntity());
+
+	auto& projectileTransform(projectile.AddComponent<CTransform>(position));
+	projectileTransform.Size = sf::Vector2f(0.25f, 0.25f);
+
+	auto& projectileSprite(projectile.AddComponent<CSprite2D>(playerTexturePath, target));
+	sf::Vector2f halfSize(projectileSprite.Sprite.getOrigin());
+
+	projectile.AddComponent<CPhysics>(halfSize, ScreentWidth, ScreenHeight);
+	projectile.AddComponent<CProjectile>(BulletBaseSpeed * speedMod, direction);
+
+	projectile.AddGroup(EntityGroup::Projectile);
+
+	return projectile;
+}
+
+ComponentSystem::GameEntity& EntityFactory::CreateObstacle(const sf::Vector2f& position, sf::RenderWindow* target) noexcept
+{
+	auto& obstacle(manager.AddEntity());
+
+	obstacle.AddComponent<CTransform>(position);
+
+	auto& obstacleSprite(obstacle.AddComponent<CSprite2D>(rockTexturePath, target));
+	sf::Vector2f halfSize(obstacleSprite.Sprite.getOrigin());
+
+	obstacle.AddComponent<CPhysics>(halfSize, ScreentWidth, ScreenHeight);
+	obstacle.AddGroup(EntityGroup::Obstacle);
+
+	return obstacle;
 }

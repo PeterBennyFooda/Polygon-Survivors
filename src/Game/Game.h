@@ -1,9 +1,12 @@
 #pragma once
-#include "ComponentSystem/Components.h"
+#include "CollisionManager.h"
 #include "ComponentSystem/EntityManager.h"
+#include "Components.h"
 #include "EntityFactory.h"
 #include "GlobalGameSettings.h"
 #include "Platform/Platform.hpp"
+#include "WeaponController.h"
+#include "eventpp/eventdispatcher.h"
 #include <catch2/catch.hpp>
 #include <chrono>
 
@@ -31,12 +34,16 @@ private:
 	util::Platform platform;
 
 	ComponentSystem::EntityManager manager;
+	CollisionManager* collisionManager;
 	EntityFactory* entityFactory;
+	WeaponController* playerWeapon;
 
 	void Init();
 	void InitLevel();
 	void InitPlayer();
 	void InitEnemy();
+	void GenerateLevel();
+	void GenerateEnemy();
 	void PollingEvent();
 
 public:

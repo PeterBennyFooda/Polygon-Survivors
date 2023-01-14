@@ -1,5 +1,6 @@
 #pragma once
-#include "EntityManager.h"
+#include "ComponentSystem/EntityManager.h"
+#include "GlobalGameSettings.h"
 
 /////////////////////////////////////////////////
 ///
@@ -9,14 +10,6 @@
 /////////////////////////////////////////////////
 namespace ComponentSystem
 {
-
-enum EnemyMoveType
-{
-	ChasePlayer,
-	AvoidPlayer,
-	PingPong
-};
-
 /*
  * (1) CCounter
  *
@@ -48,17 +41,18 @@ struct CCounter : Component
 struct CTransform : Component
 {
 	sf::Vector2f Position;
-	sf::Vector2f Velocity;
 	sf::Vector2f Size;
 	float Rotation;
 
 	CTransform() :
 		Position(0, 0),
-		Velocity(0, 0),
-		Size(0, 0)
+		Size(1.f, 1.f),
+		Rotation(0.f)
 	{}
 	CTransform(const sf::Vector2f& position) :
-		Position(position)
+		Position(position),
+		Size(1.f, 1.f),
+		Rotation(0.f)
 	{}
 };
 
@@ -99,12 +93,15 @@ public:
 	{
 		transform = &Entity->GetComponent<CTransform>();
 		Sprite.setPosition(transform->Position);
+		Sprite.setRotation(transform->Rotation);
+		Sprite.setScale(transform->Size);
 	}
 
 	void Update(float mFT) override
 	{
 		UNUSED(mFT);
 		Sprite.setPosition(transform->Position);
+		Sprite.setRotation(transform->Rotation);
 	}
 
 	void Render() override
@@ -146,10 +143,12 @@ public:
 	// Use a callback to handle the "out of bounds" event.
 	std::function<void(const sf::Vector2f&)> OnOutOfBounds;
 	sf::Vector2f HalfSize;
+	sf::Vector2f Velocity;
 	float BorderWidth, BorderHeight;
 
 	CPhysics(const sf::Vector2f& mHalfSize, const float mBorderX, const float mBorderY) :
 		HalfSize(mHalfSize),
+		Velocity(0, 0),
 		BorderWidth(mBorderX),
 		BorderHeight(mBorderY)
 	{}
@@ -167,7 +166,7 @@ public:
 
 	void Update(float mFT) override
 	{
-		transform->Position += transform->Velocity * mFT;
+		transform->Position += Velocity * mFT;
 
 		if (OnOutOfBounds == nullptr)
 			return;
@@ -228,6 +227,7 @@ private:
 
 public:
 	float PlayerSpeed;
+	bool Stop { false };
 
 	CPlayerControl(const float& mPlayerSpeed) :
 		PlayerSpeed(mPlayerSpeed)
@@ -253,27 +253,36 @@ public:
 	void Update(float mFT)
 	{
 		UNUSED(mFT);
+		//std::cout << Stop << std::endl;
+		if (Stop)
+		{
+			physics->Velocity.x = 0;
+			physics->Velocity.y = 0;
+			return;
+		}
+
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-			transform->Velocity.x = -PlayerSpeed;
+			physics->Velocity.x = -PlayerSpeed;
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-			transform->Velocity.x = PlayerSpeed;
+			physics->Velocity.x = PlayerSpeed;
 		else
-			transform->Velocity.x = 0;
+			physics->Velocity.x = 0;
 
 		//Note: In SFML origin (0,0) is at the top left corner.
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
-			transform->Velocity.y = -PlayerSpeed;
+			physics->Velocity.y = -PlayerSpeed;
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
-			transform->Velocity.y = PlayerSpeed;
+			physics->Velocity.y = PlayerSpeed;
 		else
-			transform->Velocity.y = 0;
+			physics->Velocity.y = 0;
 	}
 
+private:
 	void OnOutOfBoundsEvent(const sf::Vector2f& mSide)
 	{
 		if (mSide.x != 0.f)
 		{
-			transform->Velocity.x = 0;
+			physics->Velocity.x = 0;
 			if (mSide.x == 1)
 				transform->Position.x = physics->HalfSize.x;
 			else if (mSide.x == -1)
@@ -282,7 +291,7 @@ public:
 
 		if (mSide.y != 0.f)
 		{
-			transform->Velocity.y = 0;
+			physics->Velocity.y = 0;
 			if (mSide.y == 1)
 				transform->Position.y = physics->HalfSize.y;
 			else if (mSide.y == -1)
@@ -303,9 +312,10 @@ struct CSimpleEnemyControl : Component
 {
 public:
 	float EnemySpeed;
+	bool Stop { false };
 
 private:
-	const float avoidRadius { 200.f };
+	const float avoidRadius { 150.f };
 
 	CPhysics* physics { nullptr };
 	CTransform* transform { nullptr };
@@ -337,11 +347,11 @@ public:
 		transform = &Entity->GetComponent<CTransform>();
 
 		//Since ping pong move has no target we
-		//need to set a initial force.
+		//need to create a initial force.
 		if (moveType == EnemyMoveType::PingPong)
 		{
-			transform->Velocity.x = EnemySpeed;
-			transform->Velocity.y = EnemySpeed;
+			physics->Velocity.x = EnemySpeed;
+			physics->Velocity.y = EnemySpeed;
 		}
 
 		//Register out of bound event to prevent enemy from going out of borders.
@@ -352,32 +362,50 @@ public:
 
 	void Update(float mFT) override
 	{
-		UNUSED(mFT);
+		if (Stop)
+		{
+			physics->Velocity.x = 0;
+			physics->Velocity.y = 0;
+			return;
+		}
+
 		switch (moveType)
 		{
 			case EnemyMoveType::ChasePlayer:
-				ChasePlayerMove();
+				ChasePlayerMove(mFT);
 				break;
 			case EnemyMoveType::AvoidPlayer:
-				AvoidPlayerMove();
+				AvoidPlayerMove(mFT);
 				break;
 			case EnemyMoveType::PingPong:
-				PingPongMove();
+				PingPongMove(mFT);
 				break;
 			default:
-				ChasePlayerMove();
+				ChasePlayerMove(mFT);
 				break;
 		}
 	}
 
-	void ChasePlayerMove()
+private:
+	void ChasePlayerMove(float mFT)
 	{
 		direction = targetPos - transform->Position;
-		if (direction.x == 0 && direction.y == 0)
-			return;
+		float angle = std::atan2(direction.y, direction.x);
+		angle = angle * (180 / std::acos(-1)); //PI: acos(-1)
+		if (angle < 0)
+		{
+			angle = 360 - (-angle);
+		}
+		angle += 90;
+		//The 0 degree of atan2 is pointed the right
+		//but enemy head is pointed up so we adjust it.
+		transform->Rotation = Lerp(transform->Rotation, angle, EnemySpeed * mFT);
+		if (std::abs(angle - transform->Rotation) <= 1.f)
+			transform->Rotation = angle;
 
-		//The length of the vector
-		float length = sqrt((direction.x * direction.x) + (direction.y * direction.y));
+		//The length of the vector.
+		float length = std::sqrt((direction.x * direction.x) + (direction.y * direction.y));
+
 		if (length != 0)
 		{
 			float normalX = direction.x / length;
@@ -386,17 +414,13 @@ public:
 			direction = directionNormalized;
 		}
 
-		transform->Velocity.x = EnemySpeed * direction.x;
-		transform->Velocity.y = EnemySpeed * direction.y;
+		physics->Velocity.x = EnemySpeed * direction.x;
+		physics->Velocity.y = EnemySpeed * direction.y;
 	}
 
-	void AvoidPlayerMove()
+	void AvoidPlayerMove(float mFT)
 	{
 		direction = targetPos - transform->Position;
-		if (direction.x == 0 && direction.y == 0)
-			return;
-
-		//The length of the vector
 		float length = sqrt((direction.x * direction.x) + (direction.y * direction.y));
 		float distance = length < 0 ? length * -1 : length;
 
@@ -407,27 +431,61 @@ public:
 			sf::Vector2f directionNormalized(normalX, normalY);
 			direction = directionNormalized;
 		}
-
-		if (distance <= avoidRadius)
+		float angle = std::atan2(direction.y, direction.x);
+		angle = angle * (180 / std::acos(-1)); //PI: acos(-1)
+		if (angle < 0)
 		{
-			transform->Velocity.x = EnemySpeed * -direction.x;
-			transform->Velocity.y = EnemySpeed * -direction.y;
+			angle = 360 - (-angle);
 		}
-		PingPongMove();
+		angle += 90;
+		transform->Rotation = Lerp(transform->Rotation, angle, EnemySpeed * mFT);
+		if (std::abs(angle - transform->Rotation) <= 1.f)
+			transform->Rotation = angle;
+
+		float delta = std::abs(avoidRadius - distance);
+		if (delta < 0.1f)
+		{
+			physics->Velocity.x = 0;
+			physics->Velocity.y = 0;
+			return;
+		}
+
+		if (distance < avoidRadius)
+		{
+			physics->Velocity.x = EnemySpeed * -direction.x;
+			physics->Velocity.y = EnemySpeed * -direction.y;
+		}
+		else if (distance > avoidRadius)
+		{
+			physics->Velocity.x = EnemySpeed * direction.x * 0.5f;
+			physics->Velocity.y = EnemySpeed * direction.y * 0.5f;
+		}
 	}
 
-	void PingPongMove()
+	void PingPongMove(float mFT)
 	{
+		direction = targetPos - transform->Position;
+		float angle = std::atan2(direction.y, direction.x);
+		angle = angle * (180 / std::acos(-1)); //PI: acos(-1)
+		if (angle < 0)
+		{
+			angle = 360 - (-angle);
+		}
+		angle += 90;
+		transform->Rotation = Lerp(transform->Rotation, angle, EnemySpeed * mFT);
+		if (std::abs(angle - transform->Rotation) <= 1.f)
+			transform->Rotation = angle;
+
 		if (physics->Left() <= 0.1f)
-			transform->Velocity.x = EnemySpeed;
+			physics->Velocity.x = EnemySpeed;
 		else if (physics->Right() >= physics->BorderWidth - 0.1f)
-			transform->Velocity.x = -EnemySpeed;
+			physics->Velocity.x = -EnemySpeed;
 
 		//Note: In SFML origin (0,0) is at the top left corner.
 		if (physics->Top() <= 0.1f)
-			transform->Velocity.y = EnemySpeed;
+			physics->Velocity.y = EnemySpeed;
 		else if (physics->Bottom() >= physics->BorderHeight - 0.1f)
-			transform->Velocity.y = -EnemySpeed;
+			physics->Velocity.y = -EnemySpeed;
 	}
 
 	void OnOutOfBoundsEvent(const sf::Vector2f& mSide)
@@ -437,7 +495,7 @@ public:
 
 		if (mSide.x != 0.f)
 		{
-			transform->Velocity.x = 0;
+			physics->Velocity.x = 0;
 			if (mSide.x == 1)
 				transform->Position.x = physics->HalfSize.x;
 			else if (mSide.x == -1)
@@ -446,12 +504,90 @@ public:
 
 		if (mSide.y != 0.f)
 		{
-			transform->Velocity.y = 0;
+			physics->Velocity.y = 0;
 			if (mSide.y == 1)
 				transform->Position.y = physics->HalfSize.y;
 			else if (mSide.y == -1)
 				transform->Position.y = physics->BorderHeight - physics->HalfSize.y;
 		}
+	}
+
+private:
+	float Lerp(float a, float b, float f)
+	{
+		return a * (1.0 - f) + (b * f);
+	}
+};
+
+/*
+ * (7) CProjectile
+ *
+ * This Component is projectile controller.
+ *
+ * Entity with this component is considered
+ * a projectile like bullet.
+ */
+struct CProjectile : Component
+{
+private:
+	CPhysics* physics { nullptr };
+	CTransform* transform { nullptr };
+
+public:
+	float Speed;
+	sf::Vector2f Direction;
+	bool Stop { false };
+
+	CProjectile(const float& mSpeed, const sf::Vector2f mDirection) :
+		Speed(mSpeed),
+		Direction(mDirection)
+	{}
+
+	~CProjectile()
+	{
+		delete physics;
+		delete transform;
+	}
+
+	void Init() override
+	{
+		physics = &Entity->GetComponent<CPhysics>();
+		transform = &Entity->GetComponent<CTransform>();
+
+		//Register out of bound event to prevent player from going out of borders.
+		physics->OnOutOfBounds = [this](const sf::Vector2f& mSide) {
+			this->OnOutOfBoundsEvent(mSide);
+		};
+	}
+
+	void Update(float mFT)
+	{
+		UNUSED(mFT);
+		if (Stop)
+		{
+			physics->Velocity.x = 0;
+			physics->Velocity.y = 0;
+			return;
+		}
+		Fly();
+	}
+
+	void Fly()
+	{
+		physics->Velocity.x = Speed * Direction.x;
+		physics->Velocity.y = Speed * Direction.y;
+	}
+
+	void Die()
+	{
+		Stop = true;
+		Entity->Destroy();
+	}
+
+	void OnOutOfBoundsEvent(const sf::Vector2f& mSide)
+	{
+		UNUSED(mSide);
+		Die();
 	}
 };
 

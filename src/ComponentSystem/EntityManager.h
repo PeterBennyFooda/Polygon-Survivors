@@ -24,7 +24,7 @@ public:
 	GameEntity& AddEntity();
 
 	void AddToGroup(GameEntity* entity, Group group);
-	std::vector<GameEntity*>& GetEntityByGroup(Group group);
+	std::vector<GameEntity*>& GetEntitiesByGroup(Group group);
 };
 
 }
