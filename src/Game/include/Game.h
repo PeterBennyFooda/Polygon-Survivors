@@ -2,7 +2,9 @@
 #include "CollisionManager.h"
 #include "ComponentSystem/EntityManager.h"
 #include "Components.h"
+#include "EnemySpawner.h"
 #include "EntityFactory.h"
+#include "GameClock.h"
 #include "GlobalGameSettings.h"
 #include "Platform/Platform.hpp"
 #include "WeaponController.h"
@@ -37,13 +39,16 @@ private:
 	CollisionManager* collisionManager;
 	EntityFactory* entityFactory;
 	WeaponController* playerWeapon;
+	EnemySpawner* enemySpawner;
+
+	GameClock gameClock;
 
 	void Init();
 	void InitLevel();
 	void InitPlayer();
 	void InitEnemy();
 	void GenerateLevel();
-	void GenerateEnemy();
+	void GenerateEnemyWave();
 	void PollingEvent();
 
 public:

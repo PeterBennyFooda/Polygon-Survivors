@@ -363,7 +363,7 @@ public:
 
 	void Update(float mFT) override
 	{
-		if (Stop)
+		if (Stop && moveType != EnemyMoveType::PingPong)
 		{
 			physics->Velocity.x = 0;
 			physics->Velocity.y = 0;

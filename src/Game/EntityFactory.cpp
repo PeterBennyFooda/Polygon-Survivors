@@ -1,4 +1,4 @@
-#include "EntityFactory.h"
+#include "include/EntityFactory.h"
 using namespace ComponentSystem;
 using namespace std;
 
@@ -11,7 +11,7 @@ GameEntity& EntityFactory::CreatePlayer(const sf::Vector2f& position, sf::Render
 	auto& playerSprite(player.AddComponent<CSprite2D>(playerTexturePath, target));
 	sf::Vector2f halfSize(playerSprite.Sprite.getOrigin());
 
-	player.AddComponent<CPhysics>(halfSize, ScreentWidth, ScreenHeight);
+	player.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
 	player.AddComponent<CPlayerControl>(PlayerBaseSpeed);
 
 	player.AddGroup(EntityGroup::Player);
@@ -37,10 +37,16 @@ GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderW
 
 	enemy.AddComponent<CTransform>(position);
 
-	auto& enemySprite(enemy.AddComponent<CSprite2D>(enemyTexturePath, target));
+	string path = enemyTexturePath1;
+	if (moveType == EnemyMoveType::AvoidPlayer)
+		path = enemyTexturePath2;
+	else if (moveType == EnemyMoveType::PingPong)
+		path = enemyTexturePath3;
+
+	auto& enemySprite(enemy.AddComponent<CSprite2D>(path, target));
 	sf::Vector2f halfSize(enemySprite.Sprite.getOrigin());
 
-	enemy.AddComponent<CPhysics>(halfSize, ScreentWidth, ScreenHeight);
+	enemy.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
 	auto& players(manager.GetEntitiesByGroup(EntityGroup::Player));
 	sf::Vector2f& playerPos(players[0]->GetComponent<CTransform>().Position);
 	enemy.AddComponent<CSimpleEnemyControl>(EnemyBaseSpeed * speedMod, playerPos, moveType);
@@ -61,7 +67,7 @@ ComponentSystem::GameEntity& EntityFactory::CreateProjectile(const sf::Vector2f&
 	auto& projectileSprite(projectile.AddComponent<CSprite2D>(playerTexturePath, target));
 	sf::Vector2f halfSize(projectileSprite.Sprite.getOrigin());
 
-	projectile.AddComponent<CPhysics>(halfSize, ScreentWidth, ScreenHeight);
+	projectile.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
 	projectile.AddComponent<CProjectile>(BulletBaseSpeed * speedMod, direction);
 
 	projectile.AddGroup(EntityGroup::Projectile);
@@ -78,7 +84,7 @@ ComponentSystem::GameEntity& EntityFactory::CreateObstacle(const sf::Vector2f& p
 	auto& obstacleSprite(obstacle.AddComponent<CSprite2D>(rockTexturePath, target));
 	sf::Vector2f halfSize(obstacleSprite.Sprite.getOrigin());
 
-	obstacle.AddComponent<CPhysics>(halfSize, ScreentWidth, ScreenHeight);
+	obstacle.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
 	obstacle.AddGroup(EntityGroup::Obstacle);
 
 	return obstacle;

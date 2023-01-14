@@ -6,10 +6,6 @@
 class EntityFactory
 {
 private:
-	const std::string playerTexturePath = "Resources/Texture/Character/player.png";
-	const std::string enemyTexturePath = "Resources/Texture/Character/enemy.png";
-	const std::string rockTexturePath = "Resources/Texture/Object/rock.png";
-
 	ComponentSystem::EntityManager& manager;
 
 public:

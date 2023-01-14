@@ -1,5 +1,5 @@
-#include "CollisionManager.h"
-#include "GlobalGameSettings.h"
+#include "include/CollisionManager.h"
+#include "include/GlobalGameSettings.h"
 
 using namespace ComponentSystem;
 

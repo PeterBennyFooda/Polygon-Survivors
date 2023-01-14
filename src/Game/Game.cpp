@@ -1,4 +1,4 @@
-#include "Game.h"
+#include "include/Game.h"
 using namespace ComponentSystem;
 using namespace std;
 
@@ -19,7 +19,7 @@ Game::~Game()
 void Game ::Init()
 {
 	//Init the window.
-	this->window = new sf::RenderWindow(sf::VideoMode(ScreentWidth, ScreenHeight), "Polygon Survivors", sf::Style::Titlebar | sf::Style::Close);
+	this->window = new sf::RenderWindow(sf::VideoMode(ScreenWidth, ScreenHeight), "Polygon Survivors", sf::Style::Titlebar | sf::Style::Close);
 	this->window->setFramerateLimit(144);
 	this->window->setVerticalSyncEnabled(false);
 	platform.setIcon(this->window->getSystemHandle());
@@ -33,16 +33,20 @@ void Game ::Init()
 
 	//Create collision manager.
 	this->collisionManager = new CollisionManager(manager);
+
+	//Create enemy Spawner.
+	this->enemySpawner = new EnemySpawner(*entityFactory, *window);
 }
 
 void Game::InitLevel()
 {
 	//GenerateLevel();
+	gameClock.StartTimer(DefaultTimeLimit);
 }
 
 void Game::InitPlayer()
 {
-	auto& player(entityFactory->CreatePlayer(sf::Vector2f(ScreentWidth / 2, ScreenHeight / 2), *window));
+	auto& player(entityFactory->CreatePlayer(sf::Vector2f(ScreenWidth / 2, ScreenHeight / 2), *window));
 	auto& tPlayer(player.GetComponent<CTransform>());
 	sf::Vector2f& playerPos(tPlayer.Position);
 	this->playerWeapon = new WeaponController(WeaponType::Gun, *entityFactory, manager, *window, playerPos);
@@ -50,7 +54,7 @@ void Game::InitPlayer()
 
 void Game::InitEnemy()
 {
-	GenerateEnemy();
+	enemySpawner->GenerateEnemy(EnemySpawnMode::Easy);
 }
 
 void Game::GenerateLevel()
@@ -63,48 +67,14 @@ void Game::GenerateLevel()
 	//Init obstcles.
 	for (int i = 0; i < 10; i++)
 	{
-		entityFactory->CreateObstacle(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), *window);
+		entityFactory->CreateObstacle(sf::Vector2f(ScreenWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), *window);
 		randomOffestX = unif(generator);
 		randomOffestY = unif(generator);
 	}
 }
 
-void Game::GenerateEnemy()
+void Game::GenerateEnemyWave()
 {
-	default_random_engine generator(time(NULL));
-	uniform_real_distribution<float> unif(-300, 300);
-	float randomOffestX = unif(generator);
-	float randomOffestY = unif(generator);
-
-	//Init chasers.
-	for (int i = 0; i < 5; i++)
-	{
-		entityFactory->CreateEnemy(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), *window);
-		randomOffestX = unif(generator);
-		randomOffestY = unif(generator);
-	}
-
-	//Init cowards.
-	for (int i = 0; i < 5; i++)
-	{
-		entityFactory->CreateEnemy(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
-			*window,
-			5.f,
-			EnemyMoveType::AvoidPlayer);
-		randomOffestX = unif(generator);
-		randomOffestY = unif(generator);
-	}
-
-	//Init ping pong guys.
-	for (int i = 0; i < 5; i++)
-	{
-		entityFactory->CreateEnemy(sf::Vector2f(ScreentWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
-			*window,
-			0.75f,
-			EnemyMoveType::PingPong);
-		randomOffestX = unif(generator);
-		randomOffestY = unif(generator);
-	}
 }
 
 void Game::PollingEvent()
@@ -151,6 +121,8 @@ void Game::FixedUpdate()
 
 void Game::Update()
 {
+	gameClock.RunTimer();
+
 	if (!UseDeltaTime)
 		return;
 	manager.Refresh();
@@ -164,6 +136,7 @@ void Game::Render()
 	this->window->clear();
 
 	manager.Render();
+	gameClock.DrawText(*window);
 
 	//draw the game
 	this->window->display();
