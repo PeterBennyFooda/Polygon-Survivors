@@ -2,6 +2,11 @@
 
 using namespace ComponentSystem;
 
+CollisionManager::CollisionManager(ComponentSystem::EntityManager& mManager) :
+	manager(mManager)
+{
+}
+
 void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 {
 	auto& pA(a.GetComponent<CPhysics>());
@@ -21,8 +26,9 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 				statB.Hit(1);
 				if (statB.IsDead)
 				{
-					EventDispatcher.dispatch("");
+					GlobalDispatcher.dispatch(EventNames::GameOver);
 					cB.Stop = true;
+					stop = true;
 				}
 			}
 		}
@@ -38,7 +44,11 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 				auto& cA(a.GetComponent<CPlayerControl>());
 				statA.Hit(1);
 				if (statA.IsDead)
+				{
+					GlobalDispatcher.dispatch(EventNames::GameOver);
 					cA.Stop = true;
+					stop = true;
+				}
 			}
 		}
 
@@ -105,6 +115,9 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 
 void CollisionManager::TestAllCollision()
 {
+	if (stop)
+		return;
+
 	auto& players(manager.GetEntitiesByGroup(EntityGroup::Player));
 	auto& enemies(manager.GetEntitiesByGroup(EntityGroup::Enemy));
 	auto& obstacles(manager.GetEntitiesByGroup(EntityGroup::Obstacle));

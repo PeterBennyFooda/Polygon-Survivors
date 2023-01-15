@@ -4,6 +4,9 @@ using namespace std;
 GameClock::GameClock()
 {
 	Reset();
+	text.setPosition(ScreenWidth / 2.0f - 150.f, ScreenHeight / 20.f);
+	text.setStyle(sf::Text::Bold);
+	text.setString("Press Enter to Start\n  Survive for 3 Mins");
 }
 
 void GameClock::Reset()
@@ -22,13 +25,22 @@ void GameClock::Reset()
 		text.setOrigin(textRect.left / 2.0f, textRect.top / 2.0f);
 		text.setPosition(ScreenWidth / 2.0f - 40.f, ScreenHeight / 20.f);
 		text.setStyle(sf::Text::Regular);
-		text.setString("00:00");
+		text.setString("");
 	}
+
+	GlobalDispatcher.appendListener(EventNames::Win, [this]() {
+		isWin = true;
+	});
+	GlobalDispatcher.appendListener(EventNames::GameOver, [this]() {
+		isWin = false;
+		Stop = true;
+	});
 }
 
 void GameClock::StartTimer(float limit)
 {
-	if (Stop)
+	GameStart = true;
+	if (Stop && GameStart)
 	{
 		timeLimit = limit;
 		Stop = false;
@@ -46,6 +58,23 @@ void GameClock::RunTimer()
 }
 
 void GameClock::DrawText(sf::RenderWindow& window)
+{
+	if (Stop && GameStart)
+	{
+		cout << "STOP" << endl;
+		if (isWin)
+			DrawWin();
+		else
+			DrawLose();
+	}
+	else if (GameStart)
+	{
+		DrawNormal();
+	}
+	window.draw(text);
+}
+
+void GameClock::DrawNormal()
 {
 	string t = "";
 	if (CurrentTime < 60)
@@ -70,13 +99,21 @@ void GameClock::DrawText(sf::RenderWindow& window)
 			t = to_string(min) + ":" + to_string(sec);
 	}
 	text.setString(t);
-
-	if (Stop)
-		TimesUp();
-	window.draw(text);
 }
 
-void GameClock::TimesUp()
+void GameClock::DrawLose()
+{
+	text.setCharacterSize(80);
+	text.setFillColor(sf::Color::Red);
+
+	sf::FloatRect textRect = text.getLocalBounds();
+	text.setOrigin(textRect.left / 2.0f, textRect.top / 2.0f);
+	text.setPosition(ScreenWidth / 3.4f, ScreenHeight / 4.f);
+	text.setStyle(sf::Text::Bold);
+	text.setString("You Lose!");
+}
+
+void GameClock::DrawWin()
 {
 	text.setCharacterSize(80);
 	text.setFillColor(sf::Color::White);

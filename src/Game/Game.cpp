@@ -5,9 +5,6 @@ using namespace std;
 Game::Game()
 {
 	Init();
-	InitLevel();
-	InitPlayer();
-	InitEnemy();
 }
 
 Game::~Game()
@@ -36,12 +33,28 @@ void Game ::Init()
 
 	//Create enemy Spawner.
 	this->enemySpawner = new EnemySpawner(*entityFactory, *window);
+
+	GameState = GameStates::Menu;
+	this->gameClock = new GameClock();
+
+	GlobalDispatcher.appendListener(EventNames::GameStart, [this]() {
+		this->OnGameStateChange(EventNames::GameStart);
+		cout << "START" << endl;
+	});
+	GlobalDispatcher.appendListener(EventNames::Win, [this]() {
+		this->OnGameStateChange(EventNames::Win);
+		cout << "WIN" << endl;
+	});
+	GlobalDispatcher.appendListener(EventNames::GameOver, [this]() {
+		this->OnGameStateChange(EventNames::GameOver);
+		cout << "LOSE" << endl;
+	});
 }
 
 void Game::InitLevel()
 {
 	//GenerateLevel();
-	gameClock.StartTimer(DefaultTimeLimit);
+	gameClock->StartTimer(DefaultTimeLimit);
 }
 
 void Game::InitPlayer()
@@ -78,10 +91,10 @@ void Game::GenerateLevel()
 
 void Game::GenerateEnemyWave()
 {
-	int interval = (int)gameClock.CurrentTime % WaveInterval;
-	int modeInterval = (int)gameClock.CurrentTime % WaveModeInterval;
+	int interval = (int)gameClock->CurrentTime % WaveInterval;
+	int modeInterval = (int)gameClock->CurrentTime % WaveModeInterval;
 
-	if (gameClock.CurrentTime < 1)
+	if (gameClock->CurrentTime < 1)
 		return;
 
 	if (modeInterval == 0)
@@ -114,9 +127,53 @@ void Game::PollingEvent()
 			case sf::Event::Closed:
 				this->window->close();
 				break;
+			case sf::Event::KeyPressed:
+				if (event.key.code == sf::Keyboard::Enter)
+				{
+					if (GameState != GameStates::Stage)
+						GlobalDispatcher.dispatch(EventNames::GameStart);
+				}
+				break;
 			default:
 				break;
 		}
+	}
+}
+
+void Game::OnGameStateChange(EventNames state)
+{
+	auto& enemies(manager.GetEntitiesByGroup(EntityGroup::Enemy));
+	switch (state)
+	{
+		case EventNames::GameStart:
+			//START
+			InitLevel();
+			InitPlayer();
+			InitEnemy();
+			GameState = GameStates::Stage;
+			break;
+		case EventNames::Win:
+			//WIN
+			for (size_t i = 0; i < enemies.size(); i++)
+			{
+				auto& e(enemies[i]);
+				auto& cE(e->GetComponent<CSimpleEnemyControl>());
+				cE.Stop = true;
+			}
+			GameState = GameStates::Result;
+			break;
+		case EventNames::GameOver:
+			//DIE
+			for (size_t i = 0; i < enemies.size(); i++)
+			{
+				auto& e(enemies[i]);
+				auto& cE(e->GetComponent<CSimpleEnemyControl>());
+				cE.Stop = true;
+			}
+			GameState = GameStates::Result;
+			break;
+		default:
+			break;
 	}
 }
 
@@ -141,21 +198,27 @@ void Game::FixedUpdate()
 		//we want to ensure the ideal 'frame time' is constant.
 		manager.Refresh();
 		manager.Update(ftStep);
-		this->playerWeapon->Update(ftStep);
+
+		if (this->playerWeapon != nullptr)
+			this->playerWeapon->Update(ftStep);
 	}
 	currentSlice = 0;
 }
 
 void Game::Update()
 {
-	gameClock.RunTimer();
-	GenerateEnemyWave();
+	gameClock->RunTimer();
+
+	if (GameState == GameStates::Stage)
+		GenerateEnemyWave();
 
 	if (!UseDeltaTime)
 		return;
 	manager.Refresh();
 	manager.Update(lastFrameTime);
-	this->playerWeapon->Update(lastFrameTime);
+
+	if (this->playerWeapon != nullptr)
+		this->playerWeapon->Update(lastFrameTime);
 }
 
 void Game::Render()
@@ -164,7 +227,7 @@ void Game::Render()
 	this->window->clear();
 
 	manager.Render();
-	gameClock.DrawText(*window);
+	gameClock->DrawText(*window);
 
 	//draw the game
 	this->window->display();

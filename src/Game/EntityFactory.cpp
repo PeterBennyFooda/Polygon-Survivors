@@ -7,15 +7,15 @@ GameEntity& EntityFactory::CreatePlayer(const sf::Vector2f& position, sf::Render
 	auto& player(manager.AddEntity());
 
 	player.AddComponent<CTransform>(position);
-	auto& playerStat(player.AddComponent<CStat>(3, 1));
-	playerStat.CanBeProtect = true;
 
 	auto& playerSprite(player.AddComponent<CSprite2D>(playerTexturePath, target));
-	sf::Vector2f halfSize(playerSprite.Sprite.getOrigin());
+	sf::Vector2f halfSize(playerSprite.Origin);
 
 	player.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
 	player.AddComponent<CPlayerControl>(PlayerBaseSpeed);
 
+	auto& playerStat(player.AddComponent<CStat>(3, 1));
+	playerStat.CanBeProtect = true;
 	player.AddGroup(EntityGroup::Player);
 
 	return player;
@@ -38,8 +38,6 @@ GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderW
 	auto& enemy(manager.AddEntity());
 
 	enemy.AddComponent<CTransform>(position);
-	auto& enemyStat(enemy.AddComponent<CStat>(health, speedMod));
-	enemyStat.CanBeProtect = false;
 
 	string path = enemyTexturePath1;
 	if (moveType == EnemyMoveType::AvoidPlayer)
@@ -48,9 +46,13 @@ GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderW
 		path = enemyTexturePath3;
 
 	auto& enemySprite(enemy.AddComponent<CSprite2D>(path, target));
-	sf::Vector2f halfSize(enemySprite.Sprite.getOrigin());
+	sf::Vector2f halfSize(enemySprite.Origin);
 
 	enemy.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
+
+	auto& enemyStat(enemy.AddComponent<CStat>(health, speedMod));
+	enemyStat.CanBeProtect = true;
+
 	auto& players(manager.GetEntitiesByGroup(EntityGroup::Player));
 	sf::Vector2f& playerPos(players[0]->GetComponent<CTransform>().Position);
 	enemy.AddComponent<CSimpleEnemyControl>(EnemyBaseSpeed * enemyStat.SpeedMod, playerPos, moveType);
@@ -69,7 +71,7 @@ ComponentSystem::GameEntity& EntityFactory::CreateProjectile(const sf::Vector2f&
 	projectileTransform.Size = sf::Vector2f(0.25f, 0.25f);
 
 	auto& projectileSprite(projectile.AddComponent<CSprite2D>(playerTexturePath, target));
-	sf::Vector2f halfSize(projectileSprite.Sprite.getOrigin());
+	sf::Vector2f halfSize(projectileSprite.Origin);
 
 	projectile.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
 	projectile.AddComponent<CProjectile>(BulletBaseSpeed * speedMod, direction, damage);
@@ -86,7 +88,7 @@ ComponentSystem::GameEntity& EntityFactory::CreateObstacle(const sf::Vector2f& p
 	obstacle.AddComponent<CTransform>(position);
 
 	auto& obstacleSprite(obstacle.AddComponent<CSprite2D>(rockTexturePath, target));
-	sf::Vector2f halfSize(obstacleSprite.Sprite.getOrigin());
+	sf::Vector2f halfSize(obstacleSprite.Origin);
 
 	obstacle.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
 	obstacle.AddGroup(EntityGroup::Obstacle);

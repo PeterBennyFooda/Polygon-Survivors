@@ -1,23 +1,41 @@
 #pragma once
 #include "GlobalPath.h"
 
-//Window
-const float ScreenWidth = 800.0f;
-const float ScreenHeight = 600.0f;
-const float PlayerBaseSpeed = 0.35f;
-const float EnemyBaseSpeed = 0.1f;
-const float BulletBaseSpeed = 1.2f;
+//Basic Game
+constexpr float ScreenWidth = 800.0f;
+constexpr float ScreenHeight = 600.0f;
+constexpr float PlayerBaseSpeed = 0.3f;
+constexpr float EnemyBaseSpeed = 0.1f;
+constexpr float BulletBaseSpeed = 0.55f;
+constexpr float HitCoolDown = 0.45f;
 
 //Update Method
-const bool UseDeltaTime { true };
+constexpr bool UseDeltaTime { true };
 
 //Clock
-const float DefaultTimeLimit = 300.f;
+constexpr float DefaultTimeLimit = 300.f;
 
 //Wave
-const int WaveInterval = 10;
-const int WaveModeInterval = WaveInterval * 2;
-const int WaveSpawnOffset = 1;
+constexpr int WaveInterval = 10;
+constexpr int WaveModeInterval = WaveInterval * 2;
+constexpr int WaveSpawnOffset = 1;
+
+//Game States
+enum GameStates : std::size_t
+{
+	Menu,
+	Stage,
+	Result
+};
+
+//Events Name
+enum EventNames : std::size_t
+{
+	GameStart,
+	Win,
+	GameOver,
+	Restart
+};
 
 //Enums
 enum EntityGroup : std::size_t

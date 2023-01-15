@@ -5,6 +5,7 @@
 #include "EnemySpawner.h"
 #include "EntityFactory.h"
 #include "GameClock.h"
+#include "GlobalEventCenter.h"
 #include "GlobalGameSettings.h"
 #include "Platform/Platform.hpp"
 #include "WeaponController.h"
@@ -37,12 +38,12 @@ private:
 	util::Platform platform;
 
 	ComponentSystem::EntityManager manager;
-	CollisionManager* collisionManager;
-	EntityFactory* entityFactory;
-	WeaponController* playerWeapon;
-	EnemySpawner* enemySpawner;
+	CollisionManager* collisionManager { nullptr };
+	EntityFactory* entityFactory { nullptr };
+	WeaponController* playerWeapon { nullptr };
+	EnemySpawner* enemySpawner { nullptr };
 
-	GameClock gameClock;
+	GameClock* gameClock { nullptr };
 	float currentSpawnCount { 5 };
 	bool spawnLock { false };
 	EnemySpawnMode currentWaveMode { EnemySpawnMode::Easy };
@@ -56,8 +57,11 @@ private:
 	void GenerateLevel();
 	void GenerateEnemyWave();
 	void PollingEvent();
+	void OnGameStateChange(EventNames state);
 
 public:
+	GameStates GameState;
+
 	Game();
 	virtual ~Game();
 

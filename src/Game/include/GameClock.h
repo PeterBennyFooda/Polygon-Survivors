@@ -1,4 +1,5 @@
 #pragma once
+#include "GlobalEventCenter.h"
 #include "GlobalGameSettings.h"
 
 class GameClock
@@ -10,15 +11,19 @@ private:
 	sf::Font font;
 	sf::Text text;
 
-    void Reset();
-    void TimesUp();
+	bool isWin { false };
+
+	void Reset();
+	void DrawNormal();
+	void DrawWin();
+	void DrawLose();
 
 public:
 	float CurrentTime { 0 };
 	bool Stop { true };
+	bool GameStart { false };
 
 	GameClock();
-
 	void StartTimer(float limit);
 	void RunTimer();
 	void DrawText(sf::RenderWindow& window);

@@ -71,11 +71,12 @@ struct CSprite2D : Component
 private:
 	sf::RenderWindow& target;
 	CTransform* transform { nullptr };
+	sf::Texture texture;
+	sf::Sprite sprite;
 
 public:
-	sf::Texture Texture;
-	sf::Sprite Sprite;
 	bool Visable { true };
+	sf::Vector2f Origin;
 
 	CSprite2D() = default;
 	CSprite2D(std::string filePath, sf::RenderWindow& window) :
@@ -92,36 +93,42 @@ public:
 	void Init() override
 	{
 		transform = &Entity->GetComponent<CTransform>();
-		Sprite.setPosition(transform->Position);
-		Sprite.setRotation(transform->Rotation);
-		Sprite.setScale(transform->Size);
+		sprite.setPosition(transform->Position);
+		sprite.setRotation(transform->Rotation);
+		sprite.setScale(transform->Size);
+		Origin = sprite.getOrigin();
 	}
 
 	void Update(float mFT) override
 	{
 		UNUSED(mFT);
-		Sprite.setPosition(transform->Position);
-		Sprite.setRotation(transform->Rotation);
+		sprite.setPosition(transform->Position);
+		sprite.setRotation(transform->Rotation);
 	}
 
 	void Render() override
 	{
 		if (Visable)
-			target.draw(Sprite);
+			target.draw(sprite);
+	}
+
+	void ChangeColor(sf::Color color)
+	{
+		sprite.setColor(color);
 	}
 
 	bool SetTexture(std::string filepath)
 	{
-		if (!Texture.loadFromFile(filepath))
+		if (!texture.loadFromFile(filepath))
 		{
 			std::cout << "Error! Player texture not found!" << std::endl;
 			return false;
 		}
 		else
 		{
-			Sprite.setTexture(Texture);
-			Sprite.scale(sf::Vector2f(1.f, 1.f));
-			Sprite.setOrigin(sf::Vector2f(Sprite.getTexture()->getSize().x * 0.5f, Sprite.getTexture()->getSize().y * 0.5f));
+			sprite.setTexture(texture);
+			sprite.scale(sf::Vector2f(1.f, 1.f));
+			sprite.setOrigin(sf::Vector2f(sprite.getTexture()->getSize().x * 0.5f, sprite.getTexture()->getSize().y * 0.5f));
 			return true;
 		}
 	}
@@ -262,17 +269,17 @@ public:
 			return;
 		}
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
 			physics->Velocity.x = -PlayerSpeed;
-		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
 			physics->Velocity.x = PlayerSpeed;
 		else
 			physics->Velocity.x = 0;
 
 		//Note: In SFML origin (0,0) is at the top left corner.
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
 			physics->Velocity.y = -PlayerSpeed;
-		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
 			physics->Velocity.y = PlayerSpeed;
 		else
 			physics->Velocity.y = 0;
@@ -532,7 +539,7 @@ private:
 struct CStat : Component
 {
 private:
-	float hitCoolDown = { 1.f };
+	float hitCoolDown = { 0.5f };
 	float hitTimer = { 0.f };
 	CSprite2D* sprite { nullptr };
 
@@ -552,6 +559,7 @@ public:
 	void Init() override
 	{
 		sprite = &Entity->GetComponent<CSprite2D>();
+		hitCoolDown = HitCoolDown;
 	}
 
 	void Update(float mFT) override
@@ -578,7 +586,9 @@ private:
 		{
 			Health = 0;
 			IsDead = true;
-			sprite->Sprite.setColor(sf::Color::Red);
+
+			if (CanBeProtect)
+				sprite->ChangeColor(sf::Color::Red);
 		}
 	}
 
@@ -596,13 +606,13 @@ private:
 		hitTimer += mFT / 1000;
 		if (hitTimer < hitCoolDown)
 		{
-			sprite->Sprite.setColor(sf::Color::Green);
+			sprite->ChangeColor(sf::Color::Green);
 			IsInvincible = true;
 		}
 		else
 		{
 			hitTimer = 0;
-			sprite->Sprite.setColor(sf::Color::White);
+			sprite->ChangeColor(sf::Color::White);
 			IsInvincible = false;
 		}
 	}

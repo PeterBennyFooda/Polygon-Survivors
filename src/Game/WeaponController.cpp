@@ -5,7 +5,7 @@ void WeaponController::Update(float mFT)
 {
 	if (FireWaitTimer > 0)
 	{
-		FireWaitTimer += mFT;
+		FireWaitTimer += mFT / 1000;
 		if (FireWaitTimer < FireInterval)
 			return;
 	}
@@ -14,7 +14,7 @@ void WeaponController::Update(float mFT)
 	if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
 	{
 		Attack();
-		FireWaitTimer += mFT;
+		FireWaitTimer += mFT / 1000;
 	}
 }
 

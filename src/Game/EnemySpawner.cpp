@@ -11,17 +11,25 @@ void EnemySpawner::GenerateEnemy(EnemySpawnMode mode)
 }
 void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 {
+	int min = 100;
+	int max = 300;
+	int offset = 150;
+
 	default_random_engine generator(time(NULL));
-	uniform_real_distribution<float> unif(-300, 300);
-	float randomOffestX = unif(generator);
-	float randomOffestY = unif(generator);
+	uniform_int_distribution<int> unif(-1, 1);
+	int sign = unif(generator);
+	sign = sign == 0 ? 1 : sign;
+	int randomOffestX = (rand() % (max - min + offset) + min) * sign;
+	int randomOffestY = (rand() % (max - min + offset) + min) * sign;
 
 	//Init chasers.
 	for (int i = 0; i < count; i++)
 	{
-		factory.CreateEnemy(sf::Vector2f(ScreenWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), window, 1);
-		randomOffestX = unif(generator);
-		randomOffestY = unif(generator);
+		factory.CreateEnemy(sf::Vector2f(ScreenWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), window, 0.8f, 1);
+		sign = unif(generator);
+		sign = sign == 0 ? 1 : sign;
+		randomOffestX = (rand() % (max - min + offset) + min) * sign;
+		randomOffestY = (rand() % (max - min + offset) + min) * sign;
 	}
 	if (mode == EnemySpawnMode::Easy)
 		return;
@@ -31,11 +39,11 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 	{
 		factory.CreateEnemy(sf::Vector2f(ScreenWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
 			window,
-			0.75f,
+			2.f,
 			EnemyMoveType::AvoidPlayer,
 			2);
-		randomOffestX = unif(generator);
-		randomOffestY = unif(generator);
+		randomOffestX = (rand() % (max - min + offset) + min) * sign;
+		randomOffestY = (rand() % (max - min + offset) + min) * sign;
 	}
 	if (mode == EnemySpawnMode::Normal)
 		return;
@@ -45,11 +53,11 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 	{
 		factory.CreateEnemy(sf::Vector2f(ScreenWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
 			window,
-			1.5f,
+			0.75f,
 			EnemyMoveType::PingPong,
 			3);
-		randomOffestX = unif(generator);
-		randomOffestY = unif(generator);
+		randomOffestX = (rand() % (max - min + offset) + min) * sign;
+		randomOffestY = (rand() % (max - min + offset) + min) * sign;
 	}
 	if (mode == EnemySpawnMode::Hard)
 		return;
