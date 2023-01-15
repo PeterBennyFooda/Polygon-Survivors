@@ -14,6 +14,8 @@ Currently this game only has 1 level and the map is fixed space, no infinite scr
 
 # Credits 
 ## Open Source Libraries
-| Library                                                     | License                                                                    |
-|-------------------------------------------------------------|----------------------------------------------------------------------------|
-| [SFML](https://www.sfml-dev.org/index.php)                  | [zlib/png](https://www.sfml-dev.org/license.php)
+| Library                                                     | License                                                                            |
+|-------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [SFML](https://www.sfml-dev.org/index.php)                  | [zlib/png](https://www.sfml-dev.org/license.php)                                   |
+| [eventpp](https://github.com/wqking/eventpp)                | [Apache License 2.0](https://github.com/wqking/eventpp/blob/master/license)        |
+| [OpenMP](https://www.sfml-dev.org/index.php)                | [Apache License 2.0](https://github.com/llvm-mirror/openmp/blob/master/LICENSE.txt)|
