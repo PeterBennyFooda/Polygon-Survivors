@@ -1,5 +1,4 @@
 #include "include/CollisionManager.h"
-#include "include/GlobalGameSettings.h"
 
 using namespace ComponentSystem;
 
@@ -14,12 +13,33 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 		{
 			auto& cA(a.GetComponent<CSimpleEnemyControl>());
 			cA.Stop = true;
+
+			if (b.HasGroup(EntityGroup::Player))
+			{
+				auto& statB(b.GetComponent<CStat>());
+				auto& cB(b.GetComponent<CPlayerControl>());
+				statB.Hit(1);
+				if (statB.IsDead)
+				{
+					EventDispatcher.dispatch("");
+					cB.Stop = true;
+				}
+			}
 		}
 
 		if (b.HasGroup(EntityGroup::Enemy))
 		{
 			auto& cB(b.GetComponent<CSimpleEnemyControl>());
 			cB.Stop = true;
+
+			if (a.HasGroup(EntityGroup::Player))
+			{
+				auto& statA(a.GetComponent<CStat>());
+				auto& cA(a.GetComponent<CPlayerControl>());
+				statA.Hit(1);
+				if (statA.IsDead)
+					cA.Stop = true;
+			}
 		}
 
 		// if (a.HasGroup(EntityGroup::Player) && b.HasGroup(EntityGroup::Obstacle))
@@ -35,11 +55,25 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 
 		if (a.HasGroup(EntityGroup::Projectile) && b.HasGroup(EntityGroup::Enemy))
 		{
-			b.Destroy();
+			auto& statB(b.GetComponent<CStat>());
+			auto& pjA(a.GetComponent<CProjectile>());
+
+			statB.Hit(pjA.Damage);
+
+			if (statB.IsDead)
+				b.Destroy();
+			a.Destroy();
 		}
 		else if (b.HasGroup(EntityGroup::Projectile) && a.HasGroup(EntityGroup::Enemy))
 		{
-			a.Destroy();
+			auto& statA(a.GetComponent<CStat>());
+			auto& pjB(b.GetComponent<CProjectile>());
+
+			statA.Hit(pjB.Damage);
+
+			if (statA.IsDead)
+				a.Destroy();
+			b.Destroy();
 		}
 	}
 	else

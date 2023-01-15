@@ -49,7 +49,7 @@ void WeaponController::GunAttack()
 		direction = directionNormalized;
 	}
 	float speedTemp(0.5f);
-	factory.CreateProjectile(weaponMountPoint, direction, window, speedTemp);
+	factory.CreateProjectile(weaponMountPoint, direction, window, speedTemp, 1);
 }
 
 void WeaponController::KnifeAttack()

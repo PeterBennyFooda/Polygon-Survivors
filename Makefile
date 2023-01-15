@@ -343,7 +343,7 @@ $(BLD_DIR)/$(_BASENAME).dylib: $(_TARGET_DEPS)
 
 $(BLD_DIR)/$(_BASENAME).exe: $(_TARGET_DEPS)
 	$(call linking_with,$@)
-	$(_Q)$(CC) $(_LIB_DIRS) $(_SYMBOLS) -o $@ $(ORIGIN_FLAG) $(OBJS) $(_LINK_LIBRARIES) $(BUILD_FLAGS)
+	$(_Q)$(CC) $(_LIB_DIRS) $(_SYMBOLS) -o $@ $(ORIGIN_FLAG) $(OBJS) $(_LINK_LIBRARIES) $(BUILD_FLAGS) -fopenmp
 	@printf '\n'
 	$(call build_deps)
 

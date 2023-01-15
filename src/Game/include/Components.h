@@ -521,7 +521,95 @@ private:
 };
 
 /*
- * (7) CProjectile
+ * (7) CStat
+ *
+ * This Component provides character stats.
+ *
+ * We can extend CStat to give character a
+ * variety of modifications such as Health,
+ * SpeedMod, Armor, etc.
+ */
+struct CStat : Component
+{
+private:
+	float hitCoolDown = { 1.f };
+	float hitTimer = { 0.f };
+	CSprite2D* sprite { nullptr };
+
+public:
+	int Health { 3 };
+	float SpeedMod { 1 };
+	bool IsDead { false };
+	bool IsInvincible { false };
+	bool CanBeProtect { true };
+
+	CStat() = default;
+	CStat(const int& mHP, const float& mSpeedMod) :
+		Health(mHP),
+		SpeedMod(mSpeedMod)
+	{}
+
+	void Init() override
+	{
+		sprite = &Entity->GetComponent<CSprite2D>();
+	}
+
+	void Update(float mFT) override
+	{
+		UNUSED(mFT);
+		CheckDeath();
+		HitProtectionTimer(mFT);
+	}
+
+	void Hit(int damage)
+	{
+		if (!IsDead && !IsInvincible)
+		{
+			HitProtection();
+			Health -= damage;
+		}
+		CheckDeath();
+	}
+
+private:
+	void CheckDeath()
+	{
+		if (Health <= 0)
+		{
+			Health = 0;
+			IsDead = true;
+			sprite->Sprite.setColor(sf::Color::Red);
+		}
+	}
+
+	void HitProtection()
+	{
+		if (!IsInvincible && CanBeProtect)
+			IsInvincible = true;
+	}
+
+	void HitProtectionTimer(float mFT)
+	{
+		if (!IsInvincible || IsDead || !CanBeProtect)
+			return;
+
+		hitTimer += mFT / 1000;
+		if (hitTimer < hitCoolDown)
+		{
+			sprite->Sprite.setColor(sf::Color::Green);
+			IsInvincible = true;
+		}
+		else
+		{
+			hitTimer = 0;
+			sprite->Sprite.setColor(sf::Color::White);
+			IsInvincible = false;
+		}
+	}
+};
+
+/*
+ * (8) CProjectile
  *
  * This Component is projectile controller.
  *
@@ -539,10 +627,16 @@ public:
 	float Speed;
 	sf::Vector2f Direction;
 	bool Stop { false };
+	int Damage { 1 };
 
 	CProjectile(const float& mSpeed, const sf::Vector2f mDirection) :
 		Speed(mSpeed),
 		Direction(mDirection)
+	{}
+	CProjectile(const float& mSpeed, const sf::Vector2f mDirection, const int& mDamage) :
+		Speed(mSpeed),
+		Direction(mDirection),
+		Damage(mDamage)
 	{}
 
 	~CProjectile()
@@ -555,6 +649,7 @@ public:
 	{
 		physics = &Entity->GetComponent<CPhysics>();
 		transform = &Entity->GetComponent<CTransform>();
+		Damage = 1;
 
 		//Register out of bound event to prevent player from going out of borders.
 		physics->OnOutOfBounds = [this](const sf::Vector2f& mSide) {
@@ -594,5 +689,4 @@ public:
 			Die();
 	}
 };
-
 }

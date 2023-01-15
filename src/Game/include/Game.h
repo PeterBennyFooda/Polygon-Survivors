@@ -11,6 +11,7 @@
 #include "eventpp/eventdispatcher.h"
 #include <catch2/catch.hpp>
 #include <chrono>
+#include <omp.h>
 
 /////////////////////////////////////////////////
 ///
@@ -42,6 +43,11 @@ private:
 	EnemySpawner* enemySpawner;
 
 	GameClock gameClock;
+	float currentSpawnCount { 5 };
+	bool spawnLock { false };
+	EnemySpawnMode currentWaveMode { EnemySpawnMode::Easy };
+
+	int currentScore { 0 };
 
 	void Init();
 	void InitLevel();
@@ -52,8 +58,6 @@ private:
 	void PollingEvent();
 
 public:
-	bool UseDeltaTime { false };
-
 	Game();
 	virtual ~Game();
 

@@ -19,7 +19,7 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 	//Init chasers.
 	for (int i = 0; i < count; i++)
 	{
-		factory.CreateEnemy(sf::Vector2f(ScreenWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), window);
+		factory.CreateEnemy(sf::Vector2f(ScreenWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), window, 1);
 		randomOffestX = unif(generator);
 		randomOffestY = unif(generator);
 	}
@@ -31,8 +31,9 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 	{
 		factory.CreateEnemy(sf::Vector2f(ScreenWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
 			window,
-			5.f,
-			EnemyMoveType::AvoidPlayer);
+			0.75f,
+			EnemyMoveType::AvoidPlayer,
+			2);
 		randomOffestX = unif(generator);
 		randomOffestY = unif(generator);
 	}
@@ -44,8 +45,9 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 	{
 		factory.CreateEnemy(sf::Vector2f(ScreenWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
 			window,
-			0.75f,
-			EnemyMoveType::PingPong);
+			1.5f,
+			EnemyMoveType::PingPong,
+			3);
 		randomOffestX = unif(generator);
 		randomOffestY = unif(generator);
 	}

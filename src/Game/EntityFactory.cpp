@@ -7,6 +7,8 @@ GameEntity& EntityFactory::CreatePlayer(const sf::Vector2f& position, sf::Render
 	auto& player(manager.AddEntity());
 
 	player.AddComponent<CTransform>(position);
+	auto& playerStat(player.AddComponent<CStat>(3, 1));
+	playerStat.CanBeProtect = true;
 
 	auto& playerSprite(player.AddComponent<CSprite2D>(playerTexturePath, target));
 	sf::Vector2f halfSize(playerSprite.Sprite.getOrigin());
@@ -19,23 +21,25 @@ GameEntity& EntityFactory::CreatePlayer(const sf::Vector2f& position, sf::Render
 	return player;
 }
 
-GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow& target) noexcept
+GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow& target, const int& health) noexcept
 {
-	return CreateEnemy(position, target, 1.f, EnemyMoveType::ChasePlayer);
+	return CreateEnemy(position, target, 1.f, EnemyMoveType::ChasePlayer, health);
 }
-GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow& target, const float& speedMod) noexcept
+GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow& target, const float& speedMod, const int& health) noexcept
 {
-	return CreateEnemy(position, target, speedMod, EnemyMoveType::ChasePlayer);
+	return CreateEnemy(position, target, speedMod, EnemyMoveType::ChasePlayer, health);
 }
-GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow& target, EnemyMoveType moveType) noexcept
+GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow& target, EnemyMoveType moveType, const int& health) noexcept
 {
-	return CreateEnemy(position, target, 1.f, moveType);
+	return CreateEnemy(position, target, 1.f, moveType, health);
 }
-GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow& target, const float& speedMod, EnemyMoveType moveType) noexcept
+GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderWindow& target, const float& speedMod, EnemyMoveType moveType, const int& health) noexcept
 {
 	auto& enemy(manager.AddEntity());
 
 	enemy.AddComponent<CTransform>(position);
+	auto& enemyStat(enemy.AddComponent<CStat>(health, speedMod));
+	enemyStat.CanBeProtect = false;
 
 	string path = enemyTexturePath1;
 	if (moveType == EnemyMoveType::AvoidPlayer)
@@ -49,7 +53,7 @@ GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderW
 	enemy.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
 	auto& players(manager.GetEntitiesByGroup(EntityGroup::Player));
 	sf::Vector2f& playerPos(players[0]->GetComponent<CTransform>().Position);
-	enemy.AddComponent<CSimpleEnemyControl>(EnemyBaseSpeed * speedMod, playerPos, moveType);
+	enemy.AddComponent<CSimpleEnemyControl>(EnemyBaseSpeed * enemyStat.SpeedMod, playerPos, moveType);
 
 	enemy.AddGroup(EntityGroup::Enemy);
 
@@ -57,7 +61,7 @@ GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderW
 }
 
 ComponentSystem::GameEntity& EntityFactory::CreateProjectile(const sf::Vector2f& position, const sf::Vector2f& direction,
-	sf::RenderWindow& target, const float& speedMod) noexcept
+	sf::RenderWindow& target, const float& speedMod, const int& damage) noexcept
 {
 	auto& projectile(manager.AddEntity());
 
@@ -68,7 +72,7 @@ ComponentSystem::GameEntity& EntityFactory::CreateProjectile(const sf::Vector2f&
 	sf::Vector2f halfSize(projectileSprite.Sprite.getOrigin());
 
 	projectile.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
-	projectile.AddComponent<CProjectile>(BulletBaseSpeed * speedMod, direction);
+	projectile.AddComponent<CProjectile>(BulletBaseSpeed * speedMod, direction, damage);
 
 	projectile.AddGroup(EntityGroup::Projectile);
 

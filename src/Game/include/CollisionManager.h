@@ -1,9 +1,14 @@
 #pragma once
 #include "ComponentSystem/EntityManager.h"
 #include "Components.h"
+#include "GlobalGameSettings.h"
+#include "eventpp/eventdispatcher.h"
 
 class CollisionManager
 {
+public:
+	eventpp::EventDispatcher<std::string, void()> EventDispatcher;
+
 private:
 	ComponentSystem::EntityManager& manager;
 

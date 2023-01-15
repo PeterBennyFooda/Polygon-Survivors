@@ -8,13 +8,16 @@ const float PlayerBaseSpeed = 0.35f;
 const float EnemyBaseSpeed = 0.1f;
 const float BulletBaseSpeed = 1.2f;
 
+//Update Method
+const bool UseDeltaTime { true };
+
 //Clock
-const float DefaultTimeLimit = 2.f;
+const float DefaultTimeLimit = 300.f;
 
 //Wave
-const int WaveInterval = 10.f;
+const int WaveInterval = 10;
 const int WaveModeInterval = WaveInterval * 2;
-const int WaveCountOffset = 1;
+const int WaveSpawnOffset = 1;
 
 //Enums
 enum EntityGroup : std::size_t
@@ -40,7 +43,7 @@ enum EnemyMoveType
 	PingPong
 };
 
-enum EnemySpawnMode
+enum EnemySpawnMode : std::size_t
 {
 	Easy,
 	Normal,

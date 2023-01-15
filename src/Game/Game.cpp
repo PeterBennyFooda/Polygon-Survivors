@@ -55,6 +55,9 @@ void Game::InitPlayer()
 void Game::InitEnemy()
 {
 	enemySpawner->GenerateEnemy(EnemySpawnMode::Easy);
+	currentSpawnCount = 5;
+	currentWaveMode = EnemySpawnMode::Normal;
+	spawnLock = false;
 }
 
 void Game::GenerateLevel()
@@ -75,6 +78,30 @@ void Game::GenerateLevel()
 
 void Game::GenerateEnemyWave()
 {
+	int interval = (int)gameClock.CurrentTime % WaveInterval;
+	int modeInterval = (int)gameClock.CurrentTime % WaveModeInterval;
+
+	if (gameClock.CurrentTime < 1)
+		return;
+
+	if (modeInterval == 0)
+	{
+		if (currentWaveMode == EnemySpawnMode::Easy)
+			currentWaveMode = EnemySpawnMode::Normal;
+		else if (currentWaveMode == EnemySpawnMode::Normal)
+			currentWaveMode = EnemySpawnMode::Hard;
+	}
+
+	if (interval == 0 && !spawnLock)
+	{
+		spawnLock = true;
+		enemySpawner->GenerateEnemy(currentSpawnCount, currentWaveMode);
+		currentSpawnCount++;
+	}
+	else if (interval > 0)
+	{
+		spawnLock = false;
+	}
 }
 
 void Game::PollingEvent()
@@ -122,6 +149,7 @@ void Game::FixedUpdate()
 void Game::Update()
 {
 	gameClock.RunTimer();
+	GenerateEnemyWave();
 
 	if (!UseDeltaTime)
 		return;
@@ -167,6 +195,6 @@ void Game::Run()
 		frameTimeSeconds = (frameTime / 1000.f);
 		framePerSecond = (1.f / frameTimeSeconds);
 		window->setTitle(
-			"[Polygon Survivors] FrameTime: " + to_string(frameTime) + " / FPS: " + to_string(framePerSecond));
+			"[Polygon Survivors] FrameTime: " + to_string(frameTimeSeconds) + " / FPS: " + to_string(framePerSecond));
 	}
 }
