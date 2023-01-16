@@ -85,11 +85,6 @@ public:
 		SetTexture(filePath);
 	}
 
-	~CSprite2D()
-	{
-		delete transform;
-	}
-
 	void Init() override
 	{
 		transform = &Entity->GetComponent<CTransform>();
@@ -160,11 +155,6 @@ public:
 		BorderWidth(mBorderX),
 		BorderHeight(mBorderY)
 	{}
-
-	~CPhysics()
-	{
-		delete transform;
-	}
 
 	void Init() override
 	{
@@ -240,12 +230,6 @@ public:
 	CPlayerControl(const float& mPlayerSpeed) :
 		PlayerSpeed(mPlayerSpeed)
 	{}
-
-	~CPlayerControl()
-	{
-		delete physics;
-		delete transform;
-	}
 
 	void Init() override
 	{
@@ -342,12 +326,6 @@ public:
 		targetPos(mTarget),
 		moveType(mMoveType)
 	{}
-
-	~CSimpleEnemyControl()
-	{
-		delete physics;
-		delete transform;
-	}
 
 	void Init() override
 	{
@@ -648,12 +626,6 @@ public:
 		Direction(mDirection),
 		Damage(mDamage)
 	{}
-
-	~CProjectile()
-	{
-		delete physics;
-		delete transform;
-	}
 
 	void Init() override
 	{

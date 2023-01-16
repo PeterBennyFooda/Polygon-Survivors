@@ -67,6 +67,7 @@ void Game::InitPlayer()
 	sf::Vector2f& playerPos(tPlayer.Position);
 
 	this->playerWeapon = new WeaponController(WeaponType::Gun, *entityFactory, manager, gameDispatcher, *window, playerPos);
+	cout << "Init PL" << endl;
 }
 
 void Game::InitEnemy()
@@ -135,7 +136,13 @@ void Game::PollingEvent()
 				if (event.key.code == sf::Keyboard::Enter)
 				{
 					if (GameState != GameStates::Stage)
+					{
+						ClearStage();
+						InitPlayer();
+						InitEnemy();
 						gameDispatcher.dispatch(EventNames::GameStart);
+						InitLevel();
+					}
 				}
 				break;
 			default:
@@ -150,10 +157,6 @@ void Game::OnGameStateChange(EventNames state)
 	{
 		case EventNames::GameStart:
 			//START
-			ClearStage();
-			InitLevel();
-			InitPlayer();
-			InitEnemy();
 			GameState = GameStates::Stage;
 			break;
 		case EventNames::Win:
@@ -169,34 +172,6 @@ void Game::OnGameStateChange(EventNames state)
 		default:
 			break;
 	}
-}
-
-void Game::FixedUpdate()
-{
-	//Accumulating frame time into 'currentSlice'.
-	currentSlice += lastFrameTime;
-
-	//If 'currentSlice' is greater than or equals 'ftSlice',
-	//we update the game until 'currentSlice' is less than
-	//'ftSlice'.
-	int loop = 0;
-	for (; currentSlice >= ftSlice && loop < maxLoop; currentSlice -= ftSlice)
-	{
-		loop++;
-		//Check physics in fixed update no matter what.
-		collisionManager->TestAllCollision();
-
-		if (UseDeltaTime)
-			continue;
-		//Passing 'ftStep' instead of 'lastFrameTime' because
-		//we want to ensure the ideal 'frame time' is constant.
-		manager.Refresh();
-		manager.Update(ftStep);
-
-		if (this->playerWeapon != nullptr)
-			this->playerWeapon->Update(ftStep);
-	}
-	currentSlice = 0;
 }
 
 void Game::ClearStage()
@@ -224,6 +199,7 @@ void Game::ClearStage()
 		auto& o(obstacles[i]);
 		o->Destroy();
 	}
+	manager.Refresh(); //MUST DO THIS so that entities really get deteled.
 }
 
 void Game::PauseStage()
@@ -238,6 +214,38 @@ void Game::PauseStage()
 }
 
 //#pragma region GameLoop
+void Game::FixedUpdate()
+{
+	//Accumulating frame time into 'currentSlice'.
+	currentSlice += lastFrameTime;
+
+	//If 'currentSlice' is greater than or equals 'ftSlice',
+	//we update the game until 'currentSlice' is less than
+	//'ftSlice'.
+	int loop = 0;
+	for (; currentSlice >= ftSlice && loop < maxLoop; currentSlice -= ftSlice)
+	{
+		loop++;
+		//Check physics in fixed update no matter what.
+		if (GameState == GameStates::Stage)
+			collisionManager->TestAllCollision();
+
+		if (UseDeltaTime)
+			continue;
+		if (GameState == GameStates::Stage)
+		{
+			//Passing 'ftStep' instead of 'lastFrameTime' because
+			//we want to ensure the ideal 'frame time' is constant.
+			manager.Refresh();
+			manager.Update(ftStep);
+		}
+
+		if (this->playerWeapon != nullptr)
+			this->playerWeapon->Update(ftStep);
+	}
+	currentSlice = 0;
+}
+
 void Game::Update()
 {
 	if (GameState == GameStates::Stage)
@@ -248,8 +256,11 @@ void Game::Update()
 
 	if (!UseDeltaTime)
 		return;
-	manager.Refresh();
-	manager.Update(lastFrameTime);
+	if (GameState == GameStates::Stage)
+	{
+		manager.Refresh();
+		manager.Update(lastFrameTime);
+	}
 
 	if (this->playerWeapon != nullptr)
 		this->playerWeapon->Update(lastFrameTime);

@@ -62,23 +62,27 @@ void GameClock::RunTimer()
 	if (CurrentTime <= timeLimit)
 		CurrentTime = clock.getElapsedTime().asSeconds();
 	else
-		inGame = true;
+		stop = true;
 }
 
 void GameClock::DrawText(sf::RenderWindow& window)
 {
-	if (stop && inGame)
+	if (inGame)
 	{
-		if (isWin)
-			DrawWin();
+		if (stop)
+		{
+			if (isWin)
+				DrawWin();
+			else
+				DrawLose();
+			inGame = false;
+		}
 		else
-			DrawLose();
-		inGame = false;
+		{
+			DrawNormal();
+		}
 	}
-	else if (inGame)
-	{
-		DrawNormal();
-	}
+
 	window.draw(text);
 }
 

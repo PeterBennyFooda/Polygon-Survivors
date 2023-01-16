@@ -1,5 +1,5 @@
 #include "include/CollisionManager.h"
-
+using namespace std;
 using namespace ComponentSystem;
 
 CollisionManager::CollisionManager(ComponentSystem::EntityManager& mManager, eventpp::EventDispatcher<int, void()>& mDispatcher) :
@@ -8,6 +8,12 @@ CollisionManager::CollisionManager(ComponentSystem::EntityManager& mManager, eve
 {
 	gameDispatcher.appendListener(EventNames::GameStart, [this]() {
 		stop = false;
+	});
+	gameDispatcher.appendListener(EventNames::Win, [this]() {
+		stop = true;
+	});
+	gameDispatcher.appendListener(EventNames::GameOver, [this]() {
+		stop = true;
 	});
 }
 
@@ -35,7 +41,7 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 				{
 					gameDispatcher.dispatch(EventNames::GameOver);
 					cB.Stop = true;
-					stop = true;
+					cout << "DIE" << endl;
 				}
 			}
 		}
@@ -54,7 +60,7 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 				{
 					gameDispatcher.dispatch(EventNames::GameOver);
 					cA.Stop = true;
-					stop = true;
+					cout << "DIE" << endl;
 				}
 			}
 		}
@@ -127,7 +133,7 @@ void CollisionManager::TestAllCollision()
 
 	auto& players(manager.GetEntitiesByGroup(EntityGroup::Player));
 	auto& enemies(manager.GetEntitiesByGroup(EntityGroup::Enemy));
-	auto& obstacles(manager.GetEntitiesByGroup(EntityGroup::Obstacle));
+	//auto& obstacles(manager.GetEntitiesByGroup(EntityGroup::Obstacle));
 	auto& projectiles(manager.GetEntitiesByGroup(EntityGroup::Projectile));
 
 	//Enemies only collide with players.
@@ -143,16 +149,16 @@ void CollisionManager::TestAllCollision()
 	}
 
 	//Players only collide with obstacles.
-	for (size_t i = 0; i < players.size(); i++)
-	{
-		auto& p(players[i]);
-		//Check collisions with all obstacles.
-		for (size_t j = 0; j < obstacles.size(); j++)
-		{
-			auto& o(obstacles[j]);
-			TestCollision(*p, *o);
-		}
-	}
+	// for (size_t i = 0; i < players.size(); i++)
+	// {
+	// 	auto& p(players[i]);
+	// 	//Check collisions with all obstacles.
+	// 	for (size_t j = 0; j < obstacles.size(); j++)
+	// 	{
+	// 		auto& o(obstacles[j]);
+	// 		TestCollision(*p, *o);
+	// 	}
+	// }
 
 	//Projectiles only collide with enemies.
 	for (size_t i = 0; i < projectiles.size(); i++)
