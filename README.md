@@ -23,6 +23,13 @@ Glad that I have grown a lot.
 
 
 # Credits 
+## Assets
+| Source                                                      | License                                                                            |
+|-------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [Game-icons.net](https://game-icons.net/)                   | [Creative Commons 3.0 BY license](https://game-icons.net/about.html)               |
+| [瀞ノグリッチ](https://booth.pm/ja/items/3041172)            | [SIL OPEN FONT LICENSE Version 1.1](https://booth.pm/ja/items/3041172)             |
+
+
 ## Open Source Libraries
 | Library                                                     | License                                                                            |
 |-------------------------------------------------------------|------------------------------------------------------------------------------------|
