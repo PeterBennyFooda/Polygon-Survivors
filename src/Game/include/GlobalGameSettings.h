@@ -29,7 +29,7 @@ enum GameStates : std::size_t
 };
 
 //Events Name
-enum EventNames : std::size_t
+enum EventNames : int
 {
 	GameStart,
 	Win,

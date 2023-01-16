@@ -1,6 +1,32 @@
 #include "include/WeaponController.h"
 using namespace std;
 
+WeaponController::WeaponController(const WeaponType mType, EntityFactory& mFactory, ComponentSystem::EntityManager& mManager,
+	eventpp::EventDispatcher<int, void()>& mDispatcher, sf::RenderWindow& mWindow, sf::Vector2f& mPos) :
+	Type(mType),
+	factory(mFactory),
+	manager(mManager),
+	gameDispatcher(mDispatcher),
+	window(mWindow),
+	weaponMountPoint(mPos)
+{
+	Init();
+}
+
+void WeaponController::Init()
+{
+	stop = false;
+	gameDispatcher.appendListener(EventNames::GameStart, [this]() {
+		stop = false;
+	});
+	gameDispatcher.appendListener(EventNames::Win, [this]() {
+		stop = true;
+	});
+	gameDispatcher.appendListener(EventNames::GameOver, [this]() {
+		stop = true;
+	});
+}
+
 void WeaponController::Update(float mFT)
 {
 	if (FireWaitTimer > 0)
@@ -13,7 +39,8 @@ void WeaponController::Update(float mFT)
 
 	if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
 	{
-		Attack();
+		if (!stop)
+			Attack();
 		FireWaitTimer += mFT / 1000;
 	}
 }

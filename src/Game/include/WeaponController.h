@@ -2,6 +2,7 @@
 #include "ComponentSystem/EntityManager.h"
 #include "Components.h"
 #include "EntityFactory.h"
+#include "eventpp/eventdispatcher.h"
 
 class WeaponController
 {
@@ -12,17 +13,16 @@ public:
 
 private:
 	EntityFactory& factory;
+
 	ComponentSystem::EntityManager& manager;
+	eventpp::EventDispatcher<int, void()>& gameDispatcher;
 	sf::RenderWindow& window;
 	sf::Vector2f& weaponMountPoint;
+	bool stop { true };
 
 public:
-	WeaponController(const WeaponType mType, EntityFactory& mFactory, ComponentSystem::EntityManager& mManager, sf::RenderWindow& mWindow, sf::Vector2f& mPos) :
-		Type(mType),
-		factory(mFactory),
-		manager(mManager),
-		window(mWindow),
-		weaponMountPoint(mPos) {};
+	WeaponController(const WeaponType mType, EntityFactory& mFactory, ComponentSystem::EntityManager& mManager,
+		eventpp::EventDispatcher<int, void()>& mDispatcher, sf::RenderWindow& mWindow, sf::Vector2f& mPos);
 
 	void Init();
 	void Update(float mFT);

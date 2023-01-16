@@ -1,12 +1,29 @@
 #include "include/GameClock.h"
 using namespace std;
 
-GameClock::GameClock()
+GameClock::GameClock(eventpp::EventDispatcher<int, void()>& mDispatcher) :
+	gameDispatcher(mDispatcher)
 {
 	Reset();
 	text.setPosition(ScreenWidth / 2.0f - 150.f, ScreenHeight / 20.f);
 	text.setStyle(sf::Text::Bold);
-	text.setString("Press Enter to Start\n  Survive for 3 Mins");
+
+	int timeLimit = (int)DefaultTimeLimit;
+	text.setString("    Press Enter to Start\nSurvive for " + to_string(timeLimit) + " Seconds");
+
+	gameDispatcher.appendListener(EventNames::GameStart, [this]() {
+		isWin = false;
+		stop = true;
+		inGame = true;
+	});
+	gameDispatcher.appendListener(EventNames::Win, [this]() {
+		isWin = true;
+		stop = true;
+	});
+	gameDispatcher.appendListener(EventNames::GameOver, [this]() {
+		isWin = false;
+		stop = true;
+	});
 }
 
 void GameClock::Reset()
@@ -27,23 +44,14 @@ void GameClock::Reset()
 		text.setStyle(sf::Text::Regular);
 		text.setString("");
 	}
-
-	GlobalDispatcher.appendListener(EventNames::Win, [this]() {
-		isWin = true;
-	});
-	GlobalDispatcher.appendListener(EventNames::GameOver, [this]() {
-		isWin = false;
-		Stop = true;
-	});
 }
 
 void GameClock::StartTimer(float limit)
 {
-	GameStart = true;
-	if (Stop && GameStart)
+	if (inGame)
 	{
+		stop = false;
 		timeLimit = limit;
-		Stop = false;
 		Reset();
 		clock.restart();
 	}
@@ -54,20 +62,20 @@ void GameClock::RunTimer()
 	if (CurrentTime <= timeLimit)
 		CurrentTime = clock.getElapsedTime().asSeconds();
 	else
-		Stop = true;
+		inGame = true;
 }
 
 void GameClock::DrawText(sf::RenderWindow& window)
 {
-	if (Stop && GameStart)
+	if (stop && inGame)
 	{
-		cout << "STOP" << endl;
 		if (isWin)
 			DrawWin();
 		else
 			DrawLose();
+		inGame = false;
 	}
-	else if (GameStart)
+	else if (inGame)
 	{
 		DrawNormal();
 	}
@@ -108,7 +116,7 @@ void GameClock::DrawLose()
 
 	sf::FloatRect textRect = text.getLocalBounds();
 	text.setOrigin(textRect.left / 2.0f, textRect.top / 2.0f);
-	text.setPosition(ScreenWidth / 3.4f, ScreenHeight / 4.f);
+	text.setPosition(ScreenWidth / 4.f, ScreenHeight / 4.f);
 	text.setStyle(sf::Text::Bold);
 	text.setString("You Lose!");
 }

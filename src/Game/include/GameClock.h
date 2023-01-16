@@ -1,16 +1,19 @@
 #pragma once
-#include "GlobalEventCenter.h"
 #include "GlobalGameSettings.h"
+#include "eventpp/eventdispatcher.h"
 
 class GameClock
 {
 private:
+	eventpp::EventDispatcher<int, void()>& gameDispatcher;
 	sf::Clock clock;
 	float timeLimit { 0 };
 
 	sf::Font font;
 	sf::Text text;
 
+	bool stop { true };
+	bool inGame { false };
 	bool isWin { false };
 
 	void Reset();
@@ -20,10 +23,8 @@ private:
 
 public:
 	float CurrentTime { 0 };
-	bool Stop { true };
-	bool GameStart { false };
 
-	GameClock();
+	GameClock(eventpp::EventDispatcher<int, void()>& dispatcher);
 	void StartTimer(float limit);
 	void RunTimer();
 	void DrawText(sf::RenderWindow& window);

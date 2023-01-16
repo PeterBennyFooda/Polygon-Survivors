@@ -5,7 +5,6 @@
 #include "EnemySpawner.h"
 #include "EntityFactory.h"
 #include "GameClock.h"
-#include "GlobalEventCenter.h"
 #include "GlobalGameSettings.h"
 #include "Platform/Platform.hpp"
 #include "WeaponController.h"
@@ -54,12 +53,18 @@ private:
 	void InitLevel();
 	void InitPlayer();
 	void InitEnemy();
+
 	void GenerateLevel();
 	void GenerateEnemyWave();
+
+	void ClearStage();
+	void PauseStage();
+
 	void PollingEvent();
 	void OnGameStateChange(EventNames state);
 
 public:
+	eventpp::EventDispatcher<int, void()> gameDispatcher;
 	GameStates GameState;
 
 	Game();

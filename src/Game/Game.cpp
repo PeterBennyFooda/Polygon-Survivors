@@ -10,7 +10,10 @@ Game::Game()
 Game::~Game()
 {
 	delete this->window;
+	delete this->playerWeapon;
+	delete this->collisionManager;
 	delete this->entityFactory;
+	delete this->enemySpawner;
 }
 
 void Game ::Init()
@@ -29,23 +32,23 @@ void Game ::Init()
 	this->entityFactory = new EntityFactory(manager);
 
 	//Create collision manager.
-	this->collisionManager = new CollisionManager(manager);
+	this->collisionManager = new CollisionManager(manager, gameDispatcher);
 
 	//Create enemy Spawner.
 	this->enemySpawner = new EnemySpawner(*entityFactory, *window);
 
 	GameState = GameStates::Menu;
-	this->gameClock = new GameClock();
+	this->gameClock = new GameClock(gameDispatcher);
 
-	GlobalDispatcher.appendListener(EventNames::GameStart, [this]() {
+	gameDispatcher.appendListener(EventNames::GameStart, [this]() {
 		this->OnGameStateChange(EventNames::GameStart);
 		cout << "START" << endl;
 	});
-	GlobalDispatcher.appendListener(EventNames::Win, [this]() {
+	gameDispatcher.appendListener(EventNames::Win, [this]() {
 		this->OnGameStateChange(EventNames::Win);
 		cout << "WIN" << endl;
 	});
-	GlobalDispatcher.appendListener(EventNames::GameOver, [this]() {
+	gameDispatcher.appendListener(EventNames::GameOver, [this]() {
 		this->OnGameStateChange(EventNames::GameOver);
 		cout << "LOSE" << endl;
 	});
@@ -62,7 +65,8 @@ void Game::InitPlayer()
 	auto& player(entityFactory->CreatePlayer(sf::Vector2f(ScreenWidth / 2, ScreenHeight / 2), *window));
 	auto& tPlayer(player.GetComponent<CTransform>());
 	sf::Vector2f& playerPos(tPlayer.Position);
-	this->playerWeapon = new WeaponController(WeaponType::Gun, *entityFactory, manager, *window, playerPos);
+
+	this->playerWeapon = new WeaponController(WeaponType::Gun, *entityFactory, manager, gameDispatcher, *window, playerPos);
 }
 
 void Game::InitEnemy()
@@ -131,7 +135,7 @@ void Game::PollingEvent()
 				if (event.key.code == sf::Keyboard::Enter)
 				{
 					if (GameState != GameStates::Stage)
-						GlobalDispatcher.dispatch(EventNames::GameStart);
+						gameDispatcher.dispatch(EventNames::GameStart);
 				}
 				break;
 			default:
@@ -142,11 +146,11 @@ void Game::PollingEvent()
 
 void Game::OnGameStateChange(EventNames state)
 {
-	auto& enemies(manager.GetEntitiesByGroup(EntityGroup::Enemy));
 	switch (state)
 	{
 		case EventNames::GameStart:
 			//START
+			ClearStage();
 			InitLevel();
 			InitPlayer();
 			InitEnemy();
@@ -154,22 +158,12 @@ void Game::OnGameStateChange(EventNames state)
 			break;
 		case EventNames::Win:
 			//WIN
-			for (size_t i = 0; i < enemies.size(); i++)
-			{
-				auto& e(enemies[i]);
-				auto& cE(e->GetComponent<CSimpleEnemyControl>());
-				cE.Stop = true;
-			}
+			PauseStage();
 			GameState = GameStates::Result;
 			break;
 		case EventNames::GameOver:
 			//DIE
-			for (size_t i = 0; i < enemies.size(); i++)
-			{
-				auto& e(enemies[i]);
-				auto& cE(e->GetComponent<CSimpleEnemyControl>());
-				cE.Stop = true;
-			}
+			PauseStage();
 			GameState = GameStates::Result;
 			break;
 		default:
@@ -205,12 +199,52 @@ void Game::FixedUpdate()
 	currentSlice = 0;
 }
 
+void Game::ClearStage()
+{
+	//Clear Player
+	auto& players(manager.GetEntitiesByGroup(EntityGroup::Player));
+	for (size_t i = 0; i < players.size(); i++)
+	{
+		auto& p(players[i]);
+		p->Destroy();
+	}
+
+	//Clear Enemies
+	auto& enemies(manager.GetEntitiesByGroup(EntityGroup::Enemy));
+	for (size_t i = 0; i < enemies.size(); i++)
+	{
+		auto& e(enemies[i]);
+		e->Destroy();
+	}
+
+	//Clear Obstacles
+	auto& obstacles(manager.GetEntitiesByGroup(EntityGroup::Obstacle));
+	for (size_t i = 0; i < obstacles.size(); i++)
+	{
+		auto& o(obstacles[i]);
+		o->Destroy();
+	}
+}
+
+void Game::PauseStage()
+{
+	auto& enemies(manager.GetEntitiesByGroup(EntityGroup::Enemy));
+	for (size_t i = 0; i < enemies.size(); i++)
+	{
+		auto& e(enemies[i]);
+		auto& cE(e->GetComponent<CSimpleEnemyControl>());
+		cE.Stop = true;
+	}
+}
+
+//#pragma region GameLoop
 void Game::Update()
 {
-	gameClock->RunTimer();
-
 	if (GameState == GameStates::Stage)
+	{
+		gameClock->RunTimer();
 		GenerateEnemyWave();
+	}
 
 	if (!UseDeltaTime)
 		return;
@@ -260,4 +294,5 @@ void Game::Run()
 		window->setTitle(
 			"[Polygon Survivors] FrameTime: " + to_string(frameTimeSeconds) + " / FPS: " + to_string(framePerSecond));
 	}
+	//#pragma endregion
 }
