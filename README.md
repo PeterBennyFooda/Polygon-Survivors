@@ -17,7 +17,7 @@ Glad that I have grown a lot.
 目前這個遊戲只有1個關卡，地圖是固定的空間，沒有無限滾動。
 
 附註：本遊戲重新翻修自我以前還是大學新生時的一個小遊戲專案，那時沒有什麼經驗，  
-不只架構混亂，而且程式碼亂的跟義大利麵一樣，而且變數命名超級難看，真的很想罵罵以前的我。
+不只架構混亂，程式碼也跟義大利麵一樣，而且變數命名超級難看，真的很想罵罵以前的我。
 
 <img src="https://user-images.githubusercontent.com/6175456/212740176-dec17f8f-89d2-44ea-819b-e41cfc47024d.png" width="400" height="300"> <img src="https://user-images.githubusercontent.com/6175456/212740185-dbba5b04-435c-4767-9084-c0d60d37b38d.png" width="400" height="300">
 
