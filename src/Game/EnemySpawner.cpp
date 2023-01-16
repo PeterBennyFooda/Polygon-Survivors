@@ -29,6 +29,9 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 		sign = unif(generator);
 		sign = sign == 0 ? 1 : sign;
 		randomOffestX = (rand() % (max - min + offset) + min) * sign;
+
+		sign = unif(generator);
+		sign = sign == 0 ? 1 : sign;
 		randomOffestY = (rand() % (max - min + offset) + min) * sign;
 	}
 	if (mode == EnemySpawnMode::Easy)
@@ -42,7 +45,12 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 			2.f,
 			EnemyMoveType::AvoidPlayer,
 			2);
+		sign = unif(generator);
+		sign = sign == 0 ? 1 : sign;
 		randomOffestX = (rand() % (max - min + offset) + min) * sign;
+
+		sign = unif(generator);
+		sign = sign == 0 ? 1 : sign;
 		randomOffestY = (rand() % (max - min + offset) + min) * sign;
 	}
 	if (mode == EnemySpawnMode::Normal)
@@ -56,7 +64,12 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 			0.75f,
 			EnemyMoveType::PingPong,
 			3);
+		sign = unif(generator);
+		sign = sign == 0 ? 1 : sign;
 		randomOffestX = (rand() % (max - min + offset) + min) * sign;
+
+		sign = unif(generator);
+		sign = sign == 0 ? 1 : sign;
 		randomOffestY = (rand() % (max - min + offset) + min) * sign;
 	}
 	if (mode == EnemySpawnMode::Hard)

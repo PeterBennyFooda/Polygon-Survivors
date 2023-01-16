@@ -10,6 +10,24 @@ HUDManager::HUDManager(ComponentSystem::EntityManager& mManager, eventpp::EventD
 }
 void HUDManager::Init()
 {
+	//Hint
+	if (!hintFont.loadFromFile(fontPath2))
+	{
+		// error...
+	}
+	else
+	{
+		hintText.setFont(hintFont);
+		hintText.setCharacterSize(22);
+		hintText.setFillColor(sf::Color::White);
+
+		sf::FloatRect textRect = hintText.getLocalBounds();
+		hintText.setOrigin(textRect.left / 2.0f, textRect.top / 2.0f);
+		hintText.setPosition(ScreenWidth / 2.0f - 90.f, ScreenHeight / 3.0f);
+		hintText.setStyle(sf::Text::Regular);
+		hintText.setString("[WASD] Move\n[LMB] Shoot\n[ENTER] Continue");
+	}
+
 	//Score
 	if (!currentScoreFont.loadFromFile(fontPath2))
 	{
@@ -71,6 +89,9 @@ void HUDManager::Reset()
 	currentHealth = pStat.Health;
 	UpdateScore();
 	UpdateHealth();
+
+	hintText.setCharacterSize(18);
+	hintText.setPosition(ScreenWidth / 2.0f + 225.f, ScreenHeight / 20.f);
 }
 
 void HUDManager::UpdateScore()
@@ -87,4 +108,5 @@ void HUDManager::DrawHUD(sf::RenderWindow& window)
 {
 	window.draw(currentScoreText);
 	window.draw(currentHealthText);
+	window.draw(hintText);
 }

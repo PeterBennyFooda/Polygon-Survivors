@@ -16,6 +16,9 @@ private:
 	sf::Text currentHealthText;
 	sf::Font currentHealthFont;
 
+	sf::Font hintFont;
+	sf::Text hintText;
+
 	void Init();
 	void UpdateScore();
 	void UpdateHealth();

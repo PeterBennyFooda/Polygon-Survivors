@@ -5,7 +5,7 @@ GameClock::GameClock(eventpp::EventDispatcher<int, void(int)>& mDispatcher) :
 	gameDispatcher(mDispatcher)
 {
 	Reset();
-	text.setPosition(ScreenWidth / 2.0f - 150.f, ScreenHeight / 20.f);
+	text.setPosition(ScreenWidth / 2.0f - 155.f, ScreenHeight / 20.f);
 	text.setStyle(sf::Text::Bold);
 
 	int timeLimit = (int)DefaultTimeLimit;
