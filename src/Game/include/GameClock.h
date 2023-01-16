@@ -5,7 +5,7 @@
 class GameClock
 {
 private:
-	eventpp::EventDispatcher<int, void()>& gameDispatcher;
+	eventpp::EventDispatcher<int, void(int)>& gameDispatcher;
 	sf::Clock clock;
 	float timeLimit { 0 };
 
@@ -24,7 +24,7 @@ private:
 public:
 	float CurrentTime { 0 };
 
-	GameClock(eventpp::EventDispatcher<int, void()>& dispatcher);
+	GameClock(eventpp::EventDispatcher<int, void(int)>& dispatcher);
 	void StartTimer(float limit);
 	void RunTimer();
 	void DrawText(sf::RenderWindow& window);

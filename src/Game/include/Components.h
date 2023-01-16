@@ -376,18 +376,7 @@ private:
 	void ChasePlayerMove(float mFT)
 	{
 		direction = targetPos - transform->Position;
-		float angle = std::atan2(direction.y, direction.x);
-		angle = angle * (180 / std::acos(-1)); //PI: acos(-1)
-		if (angle < 0)
-		{
-			angle = 360 - (-angle);
-		}
-		angle += 90;
-		//The 0 degree of atan2 is pointed the right
-		//but enemy head is pointed up so we adjust it.
-		transform->Rotation = Lerp(transform->Rotation, angle, EnemySpeed * mFT);
-		if (std::abs(angle - transform->Rotation) <= 1.f)
-			transform->Rotation = angle;
+		SmoothRotate(mFT);
 
 		//The length of the vector.
 		float length = std::sqrt((direction.x * direction.x) + (direction.y * direction.y));
@@ -417,16 +406,8 @@ private:
 			sf::Vector2f directionNormalized(normalX, normalY);
 			direction = directionNormalized;
 		}
-		float angle = std::atan2(direction.y, direction.x);
-		angle = angle * (180 / std::acos(-1)); //PI: acos(-1)
-		if (angle < 0)
-		{
-			angle = 360 - (-angle);
-		}
-		angle += 90;
-		transform->Rotation = Lerp(transform->Rotation, angle, EnemySpeed * mFT);
-		if (std::abs(angle - transform->Rotation) <= 1.f)
-			transform->Rotation = angle;
+
+		SmoothRotate(mFT);
 
 		float delta = std::abs(avoidRadius - distance);
 		if (delta < 0.1f)
@@ -451,16 +432,7 @@ private:
 	void PingPongMove(float mFT)
 	{
 		direction = targetPos - transform->Position;
-		float angle = std::atan2(direction.y, direction.x);
-		angle = angle * (180 / std::acos(-1)); //PI: acos(-1)
-		if (angle < 0)
-		{
-			angle = 360 - (-angle);
-		}
-		angle += 90;
-		transform->Rotation = Lerp(transform->Rotation, angle, EnemySpeed * mFT);
-		if (std::abs(angle - transform->Rotation) <= 1.f)
-			transform->Rotation = angle;
+		SmoothRotate(mFT);
 
 		if (physics->Left() <= 0.1f)
 			physics->Velocity.x = EnemySpeed;
@@ -499,6 +471,25 @@ private:
 	}
 
 private:
+	void SmoothRotate(float mFT)
+	{
+		float smooth = (mFT / 1000) * 5;
+
+		//The 0 degree of atan2 is pointed the right
+		//but enemy head is pointed up so we adjust it.
+		float angle = std::atan2(direction.y, direction.x);
+		angle = angle * (180 / std::acos(-1)); //PI: acos(-1)
+		if (angle < 0)
+		{
+			angle = 360 - (-angle);
+		}
+		angle += 90;
+
+		transform->Rotation = Lerp(transform->Rotation, angle, smooth);
+		if (std::abs(angle - transform->Rotation) <= 0.1f)
+			transform->Rotation = angle;
+	}
+
 	float Lerp(float a, float b, float f)
 	{
 		return a * (1.0 - f) + (b * f);
@@ -523,10 +514,12 @@ private:
 
 public:
 	int Health { 3 };
+	int Score { 1 };
 	float SpeedMod { 1 };
 	bool IsDead { false };
 	bool IsInvincible { false };
 	bool CanBeProtect { true };
+	bool CanGiveScore { true };
 
 	CStat() = default;
 	CStat(const int& mHP, const float& mSpeedMod) :
@@ -538,6 +531,7 @@ public:
 	{
 		sprite = &Entity->GetComponent<CSprite2D>();
 		hitCoolDown = HitCoolDown;
+		Score = Health;
 	}
 
 	void Update(float mFT) override
@@ -555,6 +549,16 @@ public:
 			Health -= damage;
 		}
 		CheckDeath();
+	}
+
+	int GetScore()
+	{
+		if (CanGiveScore)
+		{
+			CanGiveScore = false;
+			return Score;
+		}
+		return 0;
 	}
 
 private:

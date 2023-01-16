@@ -14,6 +14,7 @@ Game::~Game()
 	delete this->collisionManager;
 	delete this->entityFactory;
 	delete this->enemySpawner;
+	delete this->hudManager;
 }
 
 void Game ::Init()
@@ -37,20 +38,25 @@ void Game ::Init()
 	//Create enemy Spawner.
 	this->enemySpawner = new EnemySpawner(*entityFactory, *window);
 
-	GameState = GameStates::Menu;
+	//Create Game Timer.
 	this->gameClock = new GameClock(gameDispatcher);
 
-	gameDispatcher.appendListener(EventNames::GameStart, [this]() {
+	//Create HUD.
+	this->hudManager = new HUDManager(manager, gameDispatcher);
+
+	GameState = GameStates::Menu;
+
+	gameDispatcher.appendListener(EventNames::GameStart, [this](int n) {
+		UNUSED(n);
 		this->OnGameStateChange(EventNames::GameStart);
-		cout << "START" << endl;
 	});
-	gameDispatcher.appendListener(EventNames::Win, [this]() {
+	gameDispatcher.appendListener(EventNames::Win, [this](int n) {
+		UNUSED(n);
 		this->OnGameStateChange(EventNames::Win);
-		cout << "WIN" << endl;
 	});
-	gameDispatcher.appendListener(EventNames::GameOver, [this]() {
+	gameDispatcher.appendListener(EventNames::GameOver, [this](int n) {
+		UNUSED(n);
 		this->OnGameStateChange(EventNames::GameOver);
-		cout << "LOSE" << endl;
 	});
 }
 
@@ -58,6 +64,7 @@ void Game::InitLevel()
 {
 	//GenerateLevel();
 	gameClock->StartTimer(DefaultTimeLimit);
+	hudManager->Reset();
 }
 
 void Game::InitPlayer()
@@ -151,29 +158,6 @@ void Game::PollingEvent()
 	}
 }
 
-void Game::OnGameStateChange(EventNames state)
-{
-	switch (state)
-	{
-		case EventNames::GameStart:
-			//START
-			GameState = GameStates::Stage;
-			break;
-		case EventNames::Win:
-			//WIN
-			PauseStage();
-			GameState = GameStates::Result;
-			break;
-		case EventNames::GameOver:
-			//DIE
-			PauseStage();
-			GameState = GameStates::Result;
-			break;
-		default:
-			break;
-	}
-}
-
 void Game::ClearStage()
 {
 	//Clear Player
@@ -213,17 +197,40 @@ void Game::PauseStage()
 	}
 }
 
+void Game::OnGameStateChange(EventNames state)
+{
+	switch (state)
+	{
+		case EventNames::GameStart:
+			//START
+			GameState = GameStates::Stage;
+			break;
+		case EventNames::Win:
+			//WIN
+			PauseStage();
+			GameState = GameStates::Result;
+			break;
+		case EventNames::GameOver:
+			//DIE
+			PauseStage();
+			GameState = GameStates::Result;
+			break;
+		default:
+			break;
+	}
+}
+
 //#pragma region GameLoop
 void Game::FixedUpdate()
 {
 	//Accumulating frame time into 'currentSlice'.
-	currentSlice += lastFrameTime;
+	currentSlice += lastFrameTime > capFrameTime ? capFrameTime : lastFrameTime;
 
 	//If 'currentSlice' is greater than or equals 'ftSlice',
 	//we update the game until 'currentSlice' is less than
 	//'ftSlice'.
 	int loop = 0;
-	for (; currentSlice >= ftSlice && loop < maxLoop; currentSlice -= ftSlice)
+	for (; currentSlice >= ftSlice; currentSlice -= ftSlice)
 	{
 		loop++;
 		//Check physics in fixed update no matter what.
@@ -243,7 +250,7 @@ void Game::FixedUpdate()
 		if (this->playerWeapon != nullptr)
 			this->playerWeapon->Update(ftStep);
 	}
-	currentSlice = 0;
+	currentSlice = lastFrameTime;
 }
 
 void Game::Update()
@@ -273,6 +280,7 @@ void Game::Render()
 
 	manager.Render();
 	gameClock->DrawText(*window);
+	hudManager->DrawHUD(*window);
 
 	//draw the game
 	this->window->display();

@@ -2,17 +2,20 @@
 using namespace std;
 using namespace ComponentSystem;
 
-CollisionManager::CollisionManager(ComponentSystem::EntityManager& mManager, eventpp::EventDispatcher<int, void()>& mDispatcher) :
+CollisionManager::CollisionManager(ComponentSystem::EntityManager& mManager, eventpp::EventDispatcher<int, void(int)>& mDispatcher) :
 	manager(mManager),
 	gameDispatcher(mDispatcher)
 {
-	gameDispatcher.appendListener(EventNames::GameStart, [this]() {
+	gameDispatcher.appendListener(EventNames::GameStart, [this](int n) {
+		UNUSED(n);
 		stop = false;
 	});
-	gameDispatcher.appendListener(EventNames::Win, [this]() {
+	gameDispatcher.appendListener(EventNames::Win, [this](int n) {
+		UNUSED(n);
 		stop = true;
 	});
-	gameDispatcher.appendListener(EventNames::GameOver, [this]() {
+	gameDispatcher.appendListener(EventNames::GameOver, [this](int n) {
+		UNUSED(n);
 		stop = true;
 	});
 }
@@ -36,7 +39,11 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 			{
 				auto& statB(b.GetComponent<CStat>());
 				auto& cB(b.GetComponent<CPlayerControl>());
+
+				if (!statB.IsInvincible)
+					gameDispatcher.dispatch(EventNames::PlayerHPChange, -1);
 				statB.Hit(1);
+
 				if (statB.IsDead)
 				{
 					gameDispatcher.dispatch(EventNames::GameOver);
@@ -55,7 +62,11 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 			{
 				auto& statA(a.GetComponent<CStat>());
 				auto& cA(a.GetComponent<CPlayerControl>());
+
+				if (!statA.IsInvincible)
+					gameDispatcher.dispatch(EventNames::PlayerHPChange, -1);
 				statA.Hit(1);
+
 				if (statA.IsDead)
 				{
 					gameDispatcher.dispatch(EventNames::GameOver);
@@ -84,7 +95,10 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 			statB.Hit(pjA.Damage);
 
 			if (statB.IsDead)
+			{
+				gameDispatcher.dispatch(EventNames::ScoreChange, statB.GetScore());
 				b.Destroy();
+			}
 			a.Destroy();
 		}
 		else if (b.HasGroup(EntityGroup::Projectile) && a.HasGroup(EntityGroup::Enemy))
@@ -95,7 +109,10 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 			statA.Hit(pjB.Damage);
 
 			if (statA.IsDead)
+			{
+				gameDispatcher.dispatch(EventNames::ScoreChange, statA.GetScore());
 				a.Destroy();
+			}
 			b.Destroy();
 		}
 	}

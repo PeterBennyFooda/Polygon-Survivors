@@ -2,7 +2,7 @@
 using namespace std;
 
 WeaponController::WeaponController(const WeaponType mType, EntityFactory& mFactory, ComponentSystem::EntityManager& mManager,
-	eventpp::EventDispatcher<int, void()>& mDispatcher, sf::RenderWindow& mWindow, sf::Vector2f& mPos) :
+	eventpp::EventDispatcher<int, void(int)>& mDispatcher, sf::RenderWindow& mWindow, sf::Vector2f& mPos) :
 	Type(mType),
 	factory(mFactory),
 	manager(mManager),
@@ -16,13 +16,16 @@ WeaponController::WeaponController(const WeaponType mType, EntityFactory& mFacto
 void WeaponController::Init()
 {
 	stop = false;
-	gameDispatcher.appendListener(EventNames::GameStart, [this]() {
+	gameDispatcher.appendListener(EventNames::GameStart, [this](int n) {
+		UNUSED(n);
 		stop = false;
 	});
-	gameDispatcher.appendListener(EventNames::Win, [this]() {
+	gameDispatcher.appendListener(EventNames::Win, [this](int n) {
+		UNUSED(n);
 		stop = true;
 	});
-	gameDispatcher.appendListener(EventNames::GameOver, [this]() {
+	gameDispatcher.appendListener(EventNames::GameOver, [this](int n) {
+		UNUSED(n);
 		stop = true;
 	});
 }

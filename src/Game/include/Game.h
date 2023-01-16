@@ -6,6 +6,7 @@
 #include "EntityFactory.h"
 #include "GameClock.h"
 #include "GlobalGameSettings.h"
+#include "HUDManager.h"
 #include "Platform/Platform.hpp"
 #include "WeaponController.h"
 #include "eventpp/eventdispatcher.h"
@@ -21,9 +22,10 @@
 class Game
 {
 private:
-	const float ftSlice { 0.02f }; //The time slice length we want to update our game logic one time in.
-	const float ftStep { 0.02f };  //Should be the same as 'ftSlice'. The time actually passed to the game logic, making sure we have constant result.
-	const int maxLoop { 200 };	   //Avoid updating too many time when we have really high FPS.
+	const float ftSlice { 1.f }; //The time slice length we want to update our game logic one time in.
+	const float ftStep { 1.f };	 //Should be the same as 'ftSlice'. The time actually passed to the game logic, making sure we have constant result.
+	//const int maxLoop { 500 };
+	const int capFrameTime { 20 }; //Avoid updating too many time when we have really high FPS.
 	float lastFrameTime { 0.f };
 	float currentSlice { 0.f };
 
@@ -41,13 +43,12 @@ private:
 	EntityFactory* entityFactory { nullptr };
 	WeaponController* playerWeapon { nullptr };
 	EnemySpawner* enemySpawner { nullptr };
+	HUDManager* hudManager { nullptr };
 
 	GameClock* gameClock { nullptr };
 	float currentSpawnCount { 5 };
 	bool spawnLock { false };
 	EnemySpawnMode currentWaveMode { EnemySpawnMode::Easy };
-
-	int currentScore { 0 };
 
 	void Init();
 	void InitLevel();
@@ -64,7 +65,7 @@ private:
 	void OnGameStateChange(EventNames state);
 
 public:
-	eventpp::EventDispatcher<int, void()> gameDispatcher;
+	eventpp::EventDispatcher<int, void(int)> gameDispatcher;
 	GameStates GameState;
 
 	Game();

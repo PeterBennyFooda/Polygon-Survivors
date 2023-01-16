@@ -7,13 +7,13 @@ constexpr float ScreenHeight = 600.0f;
 constexpr float PlayerBaseSpeed = 0.3f;
 constexpr float EnemyBaseSpeed = 0.1f;
 constexpr float BulletBaseSpeed = 0.55f;
-constexpr float HitCoolDown = 0.45f;
+constexpr float HitCoolDown = 0.25f;
 
 //Update Method
 constexpr bool UseDeltaTime { true };
 
 //Clock
-constexpr float DefaultTimeLimit = 300.f;
+constexpr float DefaultTimeLimit = 120.f;
 
 //Wave
 constexpr int WaveInterval = 10;
@@ -34,7 +34,9 @@ enum EventNames : int
 	GameStart,
 	Win,
 	GameOver,
-	Restart
+	Restart,
+	ScoreChange,
+	PlayerHPChange
 };
 
 //Enums

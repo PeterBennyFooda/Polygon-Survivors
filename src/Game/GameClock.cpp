@@ -1,7 +1,7 @@
 #include "include/GameClock.h"
 using namespace std;
 
-GameClock::GameClock(eventpp::EventDispatcher<int, void()>& mDispatcher) :
+GameClock::GameClock(eventpp::EventDispatcher<int, void(int)>& mDispatcher) :
 	gameDispatcher(mDispatcher)
 {
 	Reset();
@@ -11,18 +11,19 @@ GameClock::GameClock(eventpp::EventDispatcher<int, void()>& mDispatcher) :
 	int timeLimit = (int)DefaultTimeLimit;
 	text.setString("    Press Enter to Start\nSurvive for " + to_string(timeLimit) + " Seconds");
 
-	gameDispatcher.appendListener(EventNames::GameStart, [this]() {
-		isWin = false;
-		stop = true;
-		inGame = true;
-	});
-	gameDispatcher.appendListener(EventNames::Win, [this]() {
+	gameDispatcher.appendListener(EventNames::Win, [this](int n) {
+		UNUSED(n);
+		DrawWin();
 		isWin = true;
 		stop = true;
+		inGame = false;
 	});
-	gameDispatcher.appendListener(EventNames::GameOver, [this]() {
+	gameDispatcher.appendListener(EventNames::GameOver, [this](int n) {
+		UNUSED(n);
+		DrawLose();
 		isWin = false;
 		stop = true;
+		inGame = false;
 	});
 }
 
@@ -48,40 +49,32 @@ void GameClock::Reset()
 
 void GameClock::StartTimer(float limit)
 {
-	if (inGame)
-	{
-		stop = false;
-		timeLimit = limit;
-		Reset();
-		clock.restart();
-	}
+	inGame = true;
+	stop = false;
+	timeLimit = limit;
+	Reset();
+	clock.restart();
 }
 
 void GameClock::RunTimer()
 {
-	if (CurrentTime <= timeLimit)
-		CurrentTime = clock.getElapsedTime().asSeconds();
-	else
-		stop = true;
+	if (!stop && inGame)
+	{
+		if (CurrentTime <= timeLimit)
+			CurrentTime = clock.getElapsedTime().asSeconds();
+		else
+		{
+			stop = true;
+			CurrentTime = 0;
+			gameDispatcher.dispatch(EventNames::Win);
+		}
+	}
 }
 
 void GameClock::DrawText(sf::RenderWindow& window)
 {
-	if (inGame)
-	{
-		if (stop)
-		{
-			if (isWin)
-				DrawWin();
-			else
-				DrawLose();
-			inGame = false;
-		}
-		else
-		{
-			DrawNormal();
-		}
-	}
+	if (inGame && !stop)
+		DrawNormal();
 
 	window.draw(text);
 }
