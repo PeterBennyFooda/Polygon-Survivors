@@ -479,7 +479,7 @@ private:
 private:
 	void SmoothRotate(float mFT)
 	{
-		float smooth = (mFT / 1000) * 5;
+		float smooth = EnemyRotateSpeed * mFT;
 
 		//The 0 degree of atan2 is pointed the right
 		//but enemy head is pointed up so we adjust it.

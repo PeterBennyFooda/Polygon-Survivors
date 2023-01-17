@@ -7,6 +7,7 @@ constexpr float ScreenHeight = 600.0f;
 constexpr int EnemyBaseHealth = 1.f;
 constexpr float PlayerBaseSpeed = 0.3f;
 constexpr float EnemyBaseSpeed = 0.1f;
+constexpr float EnemyRotateSpeed = 0.05f;
 constexpr float BulletBaseSpeed = 0.55f;
 constexpr float HitCoolDown = 0.25f;
 
