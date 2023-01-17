@@ -410,7 +410,7 @@ private:
 		SmoothRotate(mFT);
 
 		float delta = std::abs(avoidRadius - distance);
-		if (delta < 0.1f)
+		if (delta <= 1.f)
 		{
 			physics->Velocity.x = 0;
 			physics->Velocity.y = 0;

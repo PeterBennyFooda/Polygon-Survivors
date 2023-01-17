@@ -232,7 +232,7 @@ void Game::OnGameStateChange(EventNames state)
 void Game::FixedUpdate()
 {
 	//Accumulating frame time into 'currentSlice'.
-	currentSlice += lastFrameTime > capFrameTime ? capFrameTime : lastFrameTime;
+	currentSlice += lastFrameTime;
 
 	//If 'currentSlice' is greater than or equals 'ftSlice',
 	//we update the game until 'currentSlice' is less than
@@ -258,7 +258,6 @@ void Game::FixedUpdate()
 		if (this->playerWeapon != nullptr)
 			this->playerWeapon->Update(ftStep);
 	}
-	currentSlice = lastFrameTime;
 }
 
 void Game::Update()

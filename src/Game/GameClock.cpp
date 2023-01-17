@@ -121,7 +121,7 @@ void GameClock::DrawLose()
 void GameClock::DrawWin()
 {
 	text.setCharacterSize(80);
-	text.setFillColor(sf::Color::White);
+	text.setFillColor(sf::Color::Yellow);
 
 	sf::FloatRect textRect = text.getLocalBounds();
 	text.setOrigin(textRect.left / 2.0f, textRect.top / 2.0f);
