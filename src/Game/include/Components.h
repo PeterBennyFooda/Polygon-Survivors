@@ -130,7 +130,358 @@ public:
 };
 
 /*
- * (4) CPhysics
+ * (4) CParticle
+ *
+ * This Component is a particle emitter.
+ *
+ * Entity with this component can emit particles.
+ */
+struct Particle
+{
+	sf::Vector2f pos; // Position
+	sf::Vector2f vel; // Velocity
+	sf::Color color;  // RGBA
+};
+enum Shape
+{
+	CIRCLE,
+	SQUARE
+};
+struct CParticle : Component
+{
+private:
+	sf::Vector2f position; // Particle origin (pixel co-ordinates)
+	sf::Vector2f gravity;  // Affects particle velocities
+	sf::Color transparent; // sf::Color( 0, 0, 0, 0 )
+	sf::Image image;
+	sf::Texture texture; // See render() and remove()
+	sf::Sprite sprite;	 // Connected to image
+	sf::Color color;
+	float particleSpeed { 1.f }; // Pixels per second (at most)
+	bool dissolve { false };	 // Dissolution enabled?
+	unsigned char dissolutionRate { 4 };
+	unsigned char shape { Shape::SQUARE };
+
+	sf::RenderWindow& window;
+
+	std::list<Particle*> particles;
+	std::random_device randDevice {};
+	std::default_random_engine randGenerator { randDevice() };
+	CTransform* transform { nullptr };
+
+public:
+	CParticle(int width, int height, sf::RenderWindow& target) :
+		window(target)
+	{
+		transparent = sf::Color(0, 0, 0, 0);
+		image.create(width, height, transparent);
+		texture.loadFromImage(image);
+		sprite.setTexture(texture, true);
+	}
+
+	~CParticle()
+	{
+		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
+		{
+			delete *it;
+		}
+	};
+
+	void Init() override
+	{
+		transform = &Entity->GetComponent<CTransform>();
+		position = transform->Position;
+	}
+
+	float Randomizer(float min, float max)
+	{
+		std::uniform_int_distribution<int> unif(min, max);
+		int result = unif(randGenerator);
+
+		return result;
+	}
+
+	// Updates position, velocity and opacity of all particles.
+	void Update(float mFT) override
+	{
+		Remove();
+		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
+		{
+			(*it)->vel.x += gravity.x * mFT;
+			(*it)->vel.y += gravity.y * mFT;
+
+			(*it)->pos.x += (*it)->vel.x * mFT * particleSpeed;
+			(*it)->pos.y += (*it)->vel.y * mFT * particleSpeed;
+
+			if (dissolve)
+				(*it)->color.a -= dissolutionRate;
+
+			if ((*it)->pos.x > image.getSize().x || (*it)->pos.x < 0
+				|| (*it)->pos.y > image.getSize().y || (*it)->pos.y < 0 || (*it)->color.a < 10)
+			{
+				delete (*it);
+				it = particles.erase(it);
+				if (it == particles.end())
+					return;
+			}
+		}
+	};
+
+	// Renders all particles onto image.
+	void Render() override
+	{
+		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
+		{
+			image.setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, (*it)->color);
+		}
+		texture.loadFromImage(image);
+		sprite.setTexture(texture, true);
+		window.draw(sprite);
+	};
+
+	// Removes all particles from image.
+	void Remove()
+	{
+		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
+		{
+			image.setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, transparent);
+		}
+	};
+
+	// Adds new particles to particles.
+	void Fuel(int count)
+	{
+		float angle;
+		Particle* particle;
+		for (int i = 0; i < count; i++)
+		{
+			particle = new Particle();
+			particle->pos.x = position.x;
+			particle->pos.y = position.y;
+
+			switch (shape)
+			{
+				case Shape::CIRCLE:
+					angle = Randomizer(0.0f, 6.2832f);
+					particle->vel.x = Randomizer(0.0f, cos(angle));
+					particle->vel.y = Randomizer(0.0f, sin(angle));
+					break;
+				case Shape::SQUARE:
+					particle->vel.x = Randomizer(-1.0f, 1.0f);
+					particle->vel.y = Randomizer(-1.0f, 1.0f);
+					break;
+				default:
+					particle->vel.x = 0.5f; // Easily detected
+					particle->vel.y = 0.5f; // Easily detected
+			}
+
+			if (particle->vel.x == 0.0f && particle->vel.y == 0.0f)
+			{
+				delete particle;
+				continue;
+			}
+
+			particle->color.r = color.r;
+			particle->color.g = color.g;
+			particle->color.b = color.b;
+			particle->color.a = 255;
+			particles.push_back(particle);
+		}
+	};
+
+	void SetPosition(float x, float y)
+	{
+		position.x = x;
+		position.y = y;
+	}
+
+	void SetColor(sf::Color mColor)
+	{
+		color = mColor;
+	}
+
+	void SetGravity(float x, float y)
+	{
+		gravity.x = x;
+		gravity.y = y;
+	}
+
+	void SetParticleSpeed(float speed)
+	{
+		particleSpeed = speed;
+	}
+
+	void SetDissolve(bool enable)
+	{
+		dissolve = enable;
+	}
+
+	void SetDissolutionRate(unsigned char rate)
+	{
+		dissolutionRate = rate;
+	}
+
+	void SetShape(unsigned char shape)
+	{
+		shape = shape;
+	}
+
+	int GetNumberOfParticles()
+	{
+		return particles.size();
+	}
+
+	std::string GetNumberOfParticlesString()
+	{
+		std::ostringstream oss;
+		oss << particles.size();
+		return oss.str();
+	};
+
+	sf::Sprite& GetSprite()
+	{
+		return sprite;
+	}
+};
+
+/*
+ * (5) CStat
+ *
+ * This Component provides character stats.
+ *
+ * We can extend CStat to give character a
+ * variety of modifications such as Health,
+ * SpeedMod, Armor, etc.
+ */
+struct CStat : Component
+{
+private:
+	float hitCoolDown = { 0.5f };
+	float hitTimer = { 0.f };
+	float particleTimer = { 0.f };
+	float particleCoolDown = { 0.3f };
+	CSprite2D* sprite { nullptr };
+	CParticle* particleEmitter { nullptr };
+	CTransform* transform { nullptr };
+
+public:
+	int Health { 3 };
+	int Score { 1 };
+	float SpeedMod { 1 };
+	bool IsDead { false };
+	bool IsInvincible { false };
+	bool CanBeProtect { true };
+	bool CanGiveScore { true };
+
+	CStat() = default;
+	CStat(const int& mHP, const float& mSpeedMod) :
+		Health(mHP),
+		SpeedMod(mSpeedMod)
+	{}
+
+	void Init() override
+	{
+		transform = &Entity->GetComponent<CTransform>();
+		sprite = &Entity->GetComponent<CSprite2D>();
+		particleEmitter = &Entity->GetComponent<CParticle>();
+		hitCoolDown = HitCoolDown;
+		Score = Health;
+	}
+
+	void Update(float mFT) override
+	{
+		CheckDeath();
+		HitProtectionTimer(mFT);
+
+		if (IsDead)
+			DeathTimer(mFT);
+	}
+
+	void Hit(int damage)
+	{
+		HitEffect();
+		if (!IsDead && !IsInvincible)
+		{
+			HitProtection();
+			Health -= damage;
+		}
+		CheckDeath();
+	}
+
+	int GetScore()
+	{
+		if (CanGiveScore)
+		{
+			CanGiveScore = false;
+			return Score;
+		}
+		return 0;
+	}
+
+private:
+	void CheckDeath()
+	{
+		if (Health <= 0)
+		{
+			Health = 0;
+			IsDead = true;
+			HitEffect();
+		}
+	}
+
+	void HitProtection()
+	{
+		if (!IsInvincible && CanBeProtect)
+			IsInvincible = true;
+	}
+
+	void HitProtectionTimer(float mFT)
+	{
+		if (!IsInvincible || IsDead || !CanBeProtect)
+			return;
+
+		hitTimer += mFT;
+		if (hitTimer < hitCoolDown)
+		{
+			sprite->ChangeColor(sf::Color::Green);
+			IsInvincible = true;
+		}
+		else
+		{
+			hitTimer = 0;
+			sprite->ChangeColor(sf::Color::White);
+			IsInvincible = false;
+		}
+	}
+
+	void DeathTimer(float mFT)
+	{
+		particleTimer += mFT;
+
+		if (particleTimer > particleCoolDown)
+		{
+			particleTimer = 0;
+			Entity->Destroy();
+		}
+	}
+
+	void HitEffect()
+	{
+		if (particleTimer == 0)
+		{
+			sprite->ChangeColor(sf::Color::Red);
+			particleEmitter->SetPosition(transform->Position.x, transform->Position.y);
+			particleEmitter->SetShape(Shape::CIRCLE);
+			particleEmitter->SetColor(sf::Color::Red);
+			particleEmitter->SetParticleSpeed(100);
+			particleEmitter->SetGravity(0.5f, 0.5f);
+			particleEmitter->Fuel(10);
+		}
+	}
+};
+
+/*
+ * (6) CPhysics
  *
  * This Component makes an entity collidable.
  *
@@ -211,7 +562,7 @@ public:
 };
 
 /*
- * (5) CPlayerControl
+ * (7) CPlayerControl
  *
  * This Component is player controller.
  *
@@ -300,7 +651,7 @@ private:
 };
 
 /*
- * (6) CSimpleEnemyControl
+ * (8) CSimpleEnemyControl
  *
  * This Component is enemy controller.
  *
@@ -318,6 +669,7 @@ private:
 
 	CPhysics* physics { nullptr };
 	CTransform* transform { nullptr };
+	CStat* stat { nullptr };
 	sf::Vector2f direction;
 	sf::Vector2f& targetPos; //Refernce of the target position so we can keep tracking it.
 	EnemyMoveType moveType { EnemyMoveType::ChasePlayer };
@@ -338,6 +690,7 @@ public:
 	{
 		physics = &Entity->GetComponent<CPhysics>();
 		transform = &Entity->GetComponent<CTransform>();
+		stat = &Entity->GetComponent<CStat>();
 
 		//Since ping pong move has no target we
 		//need to create a initial force.
@@ -355,6 +708,9 @@ public:
 
 	void Update(float mFT) override
 	{
+		if (stat->IsDead)
+			Stop = true;
+
 		if (Stop && moveType != EnemyMoveType::PingPong)
 		{
 			physics->Velocity.x = 0;
@@ -504,111 +860,7 @@ private:
 };
 
 /*
- * (7) CStat
- *
- * This Component provides character stats.
- *
- * We can extend CStat to give character a
- * variety of modifications such as Health,
- * SpeedMod, Armor, etc.
- */
-struct CStat : Component
-{
-private:
-	float hitCoolDown = { 0.5f };
-	float hitTimer = { 0.f };
-	CSprite2D* sprite { nullptr };
-
-public:
-	int Health { 3 };
-	int Score { 1 };
-	float SpeedMod { 1 };
-	bool IsDead { false };
-	bool IsInvincible { false };
-	bool CanBeProtect { true };
-	bool CanGiveScore { true };
-
-	CStat() = default;
-	CStat(const int& mHP, const float& mSpeedMod) :
-		Health(mHP),
-		SpeedMod(mSpeedMod)
-	{}
-
-	void Init() override
-	{
-		sprite = &Entity->GetComponent<CSprite2D>();
-		hitCoolDown = HitCoolDown;
-		Score = Health;
-	}
-
-	void Update(float mFT) override
-	{
-		UNUSED(mFT);
-		CheckDeath();
-		HitProtectionTimer(mFT);
-	}
-
-	void Hit(int damage)
-	{
-		if (!IsDead && !IsInvincible)
-		{
-			HitProtection();
-			Health -= damage;
-		}
-		CheckDeath();
-	}
-
-	int GetScore()
-	{
-		if (CanGiveScore)
-		{
-			CanGiveScore = false;
-			return Score;
-		}
-		return 0;
-	}
-
-private:
-	void CheckDeath()
-	{
-		if (Health <= 0)
-		{
-			Health = 0;
-			IsDead = true;
-
-			if (CanBeProtect)
-				sprite->ChangeColor(sf::Color::Red);
-		}
-	}
-
-	void HitProtection()
-	{
-		if (!IsInvincible && CanBeProtect)
-			IsInvincible = true;
-	}
-
-	void HitProtectionTimer(float mFT)
-	{
-		if (!IsInvincible || IsDead || !CanBeProtect)
-			return;
-
-		hitTimer += mFT;
-		if (hitTimer < hitCoolDown)
-		{
-			sprite->ChangeColor(sf::Color::Green);
-			IsInvincible = true;
-		}
-		else
-		{
-			hitTimer = 0;
-			sprite->ChangeColor(sf::Color::White);
-			IsInvincible = false;
-		}
-	}
-};
-
-/*
- * (8) CProjectile
+ * (9) CProjectile
  *
  * This Component is projectile controller.
  *
@@ -680,211 +932,6 @@ public:
 		UNUSED(mSide);
 		if (!isDead)
 			Die();
-	}
-};
-
-/*
- * (9) CParticle
- *
- * This Component is a particle emitter.
- *
- * Entity with this component can emit particles.
- */
-struct Particle
-{
-	sf::Vector2f pos; // Position
-	sf::Vector2f vel; // Velocity
-	sf::Color color;  // RGBA
-};
-enum Shape
-{
-	CIRCLE,
-	SQUARE
-};
-struct CParticle : Component
-{
-private:
-	sf::Vector2f position; // Particle origin (pixel co-ordinates)
-	sf::Vector2f gravity;  // Affects particle velocities
-	sf::Color transparent; // sf::Color( 0, 0, 0, 0 )
-	sf::Image image;
-	sf::Texture texture;		 // See render() and remove()
-	sf::Sprite sprite;			 // Connected to image
-	float particleSpeed { 1.f }; // Pixels per second (at most)
-	bool dissolve { false };	 // Dissolution enabled?
-	unsigned char dissolutionRate { 4 };
-	unsigned char shape { Shape::SQUARE };
-
-	sf::RenderWindow& window;
-
-	std::list<Particle*> particles;
-	std::random_device randDevice {};
-	std::default_random_engine randGenerator { randDevice() };
-
-public:
-	CParticle(int width, int height, sf::RenderWindow& target) :
-		window(target)
-	{
-		transparent = sf::Color(0, 0, 0, 0);
-		image.create(width, height, transparent);
-		texture.loadFromImage(image);
-		sprite.setTexture(texture, true);
-
-		position.x = 0.5f * width;
-		position.y = 0.5f * height;
-	}
-
-	~CParticle()
-	{
-		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
-		{
-			delete *it;
-		}
-	};
-
-	float Randomizer(float min, float max)
-	{
-		std::uniform_int_distribution<int> unif(min, max);
-		int result = unif(randGenerator);
-
-		return result;
-	}
-
-	// Updates position, velocity and opacity of all particles.
-	void Update(float mFT) override
-	{
-		Remove();
-		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
-		{
-			(*it)->vel.x += gravity.x * mFT;
-			(*it)->vel.y += gravity.y * mFT;
-
-			(*it)->pos.x += (*it)->vel.x * mFT * particleSpeed;
-			(*it)->pos.y += (*it)->vel.y * mFT * particleSpeed;
-
-			if (dissolve)
-				(*it)->color.a -= dissolutionRate;
-
-			if ((*it)->pos.x > image.getSize().x || (*it)->pos.x < 0
-				|| (*it)->pos.y > image.getSize().y || (*it)->pos.y < 0 || (*it)->color.a < 10)
-			{
-				delete (*it);
-				it = particles.erase(it);
-				if (it == particles.end())
-					return;
-			}
-		}
-	};
-
-	// Renders all particles onto image.
-	void Render() override
-	{
-		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
-		{
-			image.setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, (*it)->color);
-		}
-		texture.loadFromImage(image);
-		sprite.setTexture(texture, true);
-		window.draw(sprite);
-	};
-
-	// Removes all particles from image.
-	void Remove()
-	{
-		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
-		{
-			image.setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, transparent);
-		}
-	};
-
-	// Adds new particles to particles.
-	void Fuel(int count)
-	{
-		float angle;
-		Particle* particle;
-		for (int i = 0; i < count; i++)
-		{
-			particle = new Particle();
-			particle->pos.x = position.x;
-			particle->pos.y = position.y;
-
-			switch (shape)
-			{
-				case Shape::CIRCLE:
-					angle = Randomizer(0.0f, 6.2832f);
-					particle->vel.x = Randomizer(0.0f, cos(angle));
-					particle->vel.y = Randomizer(0.0f, sin(angle));
-					break;
-				case Shape::SQUARE:
-					particle->vel.x = Randomizer(-1.0f, 1.0f);
-					particle->vel.y = Randomizer(-1.0f, 1.0f);
-					break;
-				default:
-					particle->vel.x = 0.5f; // Easily detected
-					particle->vel.y = 0.5f; // Easily detected
-			}
-
-			if (particle->vel.x == 0.0f && particle->vel.y == 0.0f)
-			{
-				delete particle;
-				continue;
-			}
-
-			particle->color.r = Randomizer(0, 255);
-			particle->color.g = Randomizer(0, 255);
-			particle->color.b = Randomizer(0, 255);
-			particle->color.a = 255;
-			particles.push_back(particle);
-		}
-	};
-
-	void SetPosition(float x, float y)
-	{
-		position.x = x;
-		position.y = y;
-	}
-
-	void SetGravity(float x, float y)
-	{
-		gravity.x = x;
-		gravity.y = y;
-	}
-
-	void SetParticleSpeed(float speed)
-	{
-		particleSpeed = speed;
-	}
-
-	void SetDissolve(bool enable)
-	{
-		dissolve = enable;
-	}
-
-	void SetDissolutionRate(unsigned char rate)
-	{
-		dissolutionRate = rate;
-	}
-
-	void SetShape(unsigned char shape)
-	{
-		shape = shape;
-	}
-
-	int GetNumberOfParticles()
-	{
-		return particles.size();
-	}
-
-	std::string GetNumberOfParticlesString()
-	{
-		std::ostringstream oss;
-		oss << particles.size();
-		return oss.str();
-	};
-
-	sf::Sprite& GetSprite()
-	{
-		return sprite;
 	}
 };
 }

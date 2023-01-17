@@ -97,7 +97,7 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 			if (statB.IsDead)
 			{
 				gameDispatcher.dispatch(EventNames::ScoreChange, statB.GetScore());
-				b.Destroy();
+				//b.Destroy();
 			}
 			a.Destroy();
 		}
@@ -111,7 +111,7 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 			if (statA.IsDead)
 			{
 				gameDispatcher.dispatch(EventNames::ScoreChange, statA.GetScore());
-				a.Destroy();
+				//a.Destroy();
 			}
 			b.Destroy();
 		}

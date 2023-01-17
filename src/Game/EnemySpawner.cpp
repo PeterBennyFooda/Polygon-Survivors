@@ -20,9 +20,11 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 		factory.CreateEnemy(center + sf::Vector2f(randomOffestX, randomOffestY), window, 0.8f, EnemyBaseHealth);
 		randomOffestX = RandomX();
 		randomOffestY = RandomY();
+		//cout << randomOffestX << "|" << i << "|" << randomOffestY << endl;
 		CheckTooClose(randomOffestX, randomOffestY);
 		randomOffestX *= RandomSign();
 		randomOffestY *= RandomSign();
+		//cout << randomOffestX << "=" << i << "=" << randomOffestY << endl;
 	}
 	if (mode == EnemySpawnMode::Easy)
 		return;

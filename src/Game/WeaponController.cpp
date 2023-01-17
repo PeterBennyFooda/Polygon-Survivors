@@ -81,11 +81,6 @@ void WeaponController::GunAttack()
 	}
 	float speedTemp(0.5f);
 	factory.CreateProjectile(weaponMountPoint, direction, window, speedTemp, 1);
-	// auto& gun(factory.CreateProjectile(weaponMountPoint, direction, window, speedTemp, 1));
-	// auto& gunP(gun.GetComponent<CParticle>());
-	// gunP.SetGravity(0.1f, 0.1f);
-	// gunP.SetParticleSpeed(50.f);
-	// gunP.Fuel(15);
 }
 
 void WeaponController::KnifeAttack()

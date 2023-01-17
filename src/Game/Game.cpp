@@ -250,11 +250,11 @@ void Game::FixedUpdate()
 		{
 			if (this->playerWeapon != nullptr)
 				this->playerWeapon->Update(ftStep / 1000);
-			//Passing 'ftStep' instead of 'lastFrameTime' because
-			//we want to ensure the ideal 'frame time' is constant.
-			manager.Refresh();
-			manager.Update(ftStep / 1000);
 		}
+		//Passing 'ftStep' instead of 'lastFrameTime' because
+		//we want to ensure the ideal 'frame time' is constant.
+		manager.Refresh();
+		manager.Update(ftStep / 1000);
 	}
 }
 
@@ -272,9 +272,9 @@ void Game::Update()
 	{
 		if (this->playerWeapon != nullptr)
 			this->playerWeapon->Update(frameTimeSeconds);
-		manager.Refresh();
-		manager.Update(frameTimeSeconds);
 	}
+	manager.Refresh();
+	manager.Update(frameTimeSeconds);
 }
 
 void Game::Render()
