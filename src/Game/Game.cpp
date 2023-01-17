@@ -176,6 +176,14 @@ void Game::ClearStage()
 		e->Destroy();
 	}
 
+	//Clear Projectiles
+	auto& projectiles(manager.GetEntitiesByGroup(EntityGroup::Projectile));
+	for (size_t i = 0; i < projectiles.size(); i++)
+	{
+		auto& pj(projectiles[i]);
+		pj->Destroy();
+	}
+
 	//Clear Obstacles
 	auto& obstacles(manager.GetEntitiesByGroup(EntityGroup::Obstacle));
 	for (size_t i = 0; i < obstacles.size(); i++)

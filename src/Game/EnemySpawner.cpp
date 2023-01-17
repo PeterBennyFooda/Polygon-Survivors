@@ -11,28 +11,18 @@ void EnemySpawner::GenerateEnemy(EnemySpawnMode mode)
 }
 void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 {
-	int min = 100;
-	int max = 300;
-	int offset = 150;
-
-	default_random_engine generator(time(NULL));
-	uniform_int_distribution<int> unif(-1, 1);
-	int sign = unif(generator);
-	sign = sign == 0 ? 1 : sign;
-	int randomOffestX = (rand() % (max - min + offset) + min) * sign;
-	int randomOffestY = (rand() % (max - min + offset) + min) * sign;
+	int randomOffestX = RandomX() * RandomSign();
+	int randomOffestY = RandomY() * RandomSign();
 
 	//Init chasers.
 	for (int i = 0; i < count; i++)
 	{
-		factory.CreateEnemy(sf::Vector2f(ScreenWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), window, 0.8f, 1);
-		sign = unif(generator);
-		sign = sign == 0 ? 1 : sign;
-		randomOffestX = (rand() % (max - min + offset) + min) * sign;
-
-		sign = unif(generator);
-		sign = sign == 0 ? 1 : sign;
-		randomOffestY = (rand() % (max - min + offset) + min) * sign;
+		factory.CreateEnemy(center + sf::Vector2f(randomOffestX, randomOffestY), window, 0.8f, EnemyBaseHealth);
+		randomOffestX = RandomX();
+		randomOffestY = RandomY();
+		CheckTooClose(randomOffestX, randomOffestY);
+		randomOffestX *= RandomSign();
+		randomOffestY *= RandomSign();
 	}
 	if (mode == EnemySpawnMode::Easy)
 		return;
@@ -40,18 +30,16 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 	//Init cowards.
 	for (int i = 0; i < count; i++)
 	{
-		factory.CreateEnemy(sf::Vector2f(ScreenWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
+		factory.CreateEnemy(center + sf::Vector2f(randomOffestX, randomOffestY),
 			window,
 			2.f,
 			EnemyMoveType::AvoidPlayer,
-			2);
-		sign = unif(generator);
-		sign = sign == 0 ? 1 : sign;
-		randomOffestX = (rand() % (max - min + offset) + min) * sign;
-
-		sign = unif(generator);
-		sign = sign == 0 ? 1 : sign;
-		randomOffestY = (rand() % (max - min + offset) + min) * sign;
+			EnemyBaseHealth * 2);
+		randomOffestX = RandomX();
+		randomOffestY = RandomY();
+		CheckTooClose(randomOffestX, randomOffestY);
+		randomOffestX *= RandomSign();
+		randomOffestY *= RandomSign();
 	}
 	if (mode == EnemySpawnMode::Normal)
 		return;
@@ -59,19 +47,59 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 	//Init ping pong guys.
 	for (int i = 0; i < count; i++)
 	{
-		factory.CreateEnemy(sf::Vector2f(ScreenWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY),
+		factory.CreateEnemy(center + sf::Vector2f(randomOffestX, randomOffestY),
 			window,
 			0.75f,
 			EnemyMoveType::PingPong,
-			3);
-		sign = unif(generator);
-		sign = sign == 0 ? 1 : sign;
-		randomOffestX = (rand() % (max - min + offset) + min) * sign;
+			EnemyBaseHealth * 3);
 
-		sign = unif(generator);
-		sign = sign == 0 ? 1 : sign;
-		randomOffestY = (rand() % (max - min + offset) + min) * sign;
+		randomOffestX = RandomX();
+		randomOffestY = RandomY();
+		CheckTooClose(randomOffestX, randomOffestY);
+		randomOffestX *= RandomSign();
+		randomOffestY *= RandomSign();
 	}
 	if (mode == EnemySpawnMode::Hard)
 		return;
+}
+
+int EnemySpawner::RandomX()
+{
+	int result = 0;
+	result = (rand() % (Xmax - min + 1) + min);
+
+	return result;
+}
+
+int EnemySpawner::RandomY()
+{
+	int result = 0;
+	result = (rand() % (Ymax - min + 1) + min);
+
+	return result;
+}
+
+int EnemySpawner::RandomSign()
+{
+	uniform_int_distribution<int> unif(-1, 1);
+
+	int sign = unif(randGenerator);
+	sign = sign == 0 ? 1 : sign;
+
+	return sign;
+}
+
+void EnemySpawner::CheckTooClose(int& x, int& y)
+{
+	if (x < dangerRadius && y < dangerRadius)
+	{
+		uniform_int_distribution<int> unif(-1, 1);
+		int sign = unif(randGenerator);
+		sign = sign == 0 ? 1 : sign;
+
+		if (sign > 0)
+			x = dangerRadius;
+		else
+			y = dangerRadius;
+	}
 }

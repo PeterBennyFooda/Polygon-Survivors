@@ -4,6 +4,7 @@
 //Basic Game
 constexpr float ScreenWidth = 800.0f;
 constexpr float ScreenHeight = 600.0f;
+constexpr int EnemyBaseHealth = 1.f;
 constexpr float PlayerBaseSpeed = 0.3f;
 constexpr float EnemyBaseSpeed = 0.1f;
 constexpr float BulletBaseSpeed = 0.55f;
