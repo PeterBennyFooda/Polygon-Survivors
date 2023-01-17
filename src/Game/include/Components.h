@@ -165,6 +165,7 @@ public:
 	void Update(float mFT) override
 	{
 		transform->Position += Velocity * mFT;
+		//std::cout << std::to_string(PlayerBaseSpeed * mFT) << std::endl;
 
 		if (OnOutOfBounds == nullptr)
 			return;
@@ -591,7 +592,7 @@ private:
 		if (!IsInvincible || IsDead || !CanBeProtect)
 			return;
 
-		hitTimer += mFT / 1000;
+		hitTimer += mFT;
 		if (hitTimer < hitCoolDown)
 		{
 			sprite->ChangeColor(sf::Color::Green);
@@ -753,7 +754,6 @@ public:
 	void Update(float mFT) override
 	{
 		Remove();
-		int ct = 0;
 		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
 		{
 			(*it)->vel.x += gravity.x * mFT;
@@ -761,8 +761,6 @@ public:
 
 			(*it)->pos.x += (*it)->vel.x * mFT * particleSpeed;
 			(*it)->pos.y += (*it)->vel.y * mFT * particleSpeed;
-			ct++;
-			std::cout << std::to_string((*it)->pos.x) << "/" << std::to_string((*it)->pos.y) << "/" << ct << std::endl;
 
 			if (dissolve)
 				(*it)->color.a -= dissolutionRate;
@@ -770,7 +768,6 @@ public:
 			if ((*it)->pos.x > image.getSize().x || (*it)->pos.x < 0
 				|| (*it)->pos.y > image.getSize().y || (*it)->pos.y < 0 || (*it)->color.a < 10)
 			{
-				std::cout << "delete p" << ct << std::endl;
 				delete (*it);
 				it = particles.erase(it);
 				if (it == particles.end())
@@ -782,13 +779,12 @@ public:
 	// Renders all particles onto image.
 	void Render() override
 	{
-		float ct = 0;
 		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
 		{
-			ct++;
 			image.setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, (*it)->color);
-			std::cout << "render p" << ct << "/" << std::to_string((int)(*it)->pos.x) << "/" << std::to_string((int)(*it)->pos.y) << std::endl;
 		}
+		texture.loadFromImage(image);
+		sprite.setTexture(texture, true);
 		window.draw(sprite);
 	};
 

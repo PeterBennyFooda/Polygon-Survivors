@@ -8,7 +8,7 @@ class WeaponController
 {
 public:
 	WeaponType Type;
-	float FireInterval { 0.25f };
+	float FireInterval { 0.15f };
 	float FireWaitTimer { 0.f };
 
 private:

@@ -35,7 +35,7 @@ void WeaponController::Update(float mFT)
 {
 	if (FireWaitTimer > 0)
 	{
-		FireWaitTimer += mFT / 1000;
+		FireWaitTimer += mFT;
 		if (FireWaitTimer < FireInterval)
 			return;
 	}
@@ -45,7 +45,7 @@ void WeaponController::Update(float mFT)
 	{
 		if (!stop)
 			Attack();
-		FireWaitTimer += mFT / 1000;
+		FireWaitTimer += mFT;
 	}
 }
 
@@ -80,11 +80,12 @@ void WeaponController::GunAttack()
 		direction = directionNormalized;
 	}
 	float speedTemp(0.5f);
-	auto& gun(factory.CreateProjectile(weaponMountPoint, direction, window, speedTemp, 1));
-	auto& gunP(gun.GetComponent<CParticle>());
-	gunP.SetGravity(1.f, 1.f);
-	gunP.SetParticleSpeed(1.f);
-	gunP.Fuel(15);
+	factory.CreateProjectile(weaponMountPoint, direction, window, speedTemp, 1);
+	// auto& gun(factory.CreateProjectile(weaponMountPoint, direction, window, speedTemp, 1));
+	// auto& gunP(gun.GetComponent<CParticle>());
+	// gunP.SetGravity(0.1f, 0.1f);
+	// gunP.SetParticleSpeed(50.f);
+	// gunP.Fuel(15);
 }
 
 void WeaponController::KnifeAttack()

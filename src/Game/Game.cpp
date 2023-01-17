@@ -74,7 +74,6 @@ void Game::InitPlayer()
 	sf::Vector2f& playerPos(tPlayer.Position);
 
 	this->playerWeapon = new WeaponController(WeaponType::Gun, *entityFactory, manager, gameDispatcher, *window, playerPos);
-	cout << "Init PL" << endl;
 }
 
 void Game::InitEnemy()
@@ -250,11 +249,11 @@ void Game::FixedUpdate()
 		if (GameState == GameStates::Stage)
 		{
 			if (this->playerWeapon != nullptr)
-				this->playerWeapon->Update(ftStep);
+				this->playerWeapon->Update(ftStep / 1000);
 			//Passing 'ftStep' instead of 'lastFrameTime' because
 			//we want to ensure the ideal 'frame time' is constant.
 			manager.Refresh();
-			manager.Update(ftStep);
+			manager.Update(ftStep / 1000);
 		}
 	}
 }
@@ -272,9 +271,9 @@ void Game::Update()
 	if (GameState == GameStates::Stage)
 	{
 		if (this->playerWeapon != nullptr)
-			this->playerWeapon->Update(ftStep);
+			this->playerWeapon->Update(frameTimeSeconds);
 		manager.Refresh();
-		manager.Update(lastFrameTime);
+		manager.Update(frameTimeSeconds);
 	}
 }
 
