@@ -1,5 +1,6 @@
 #include "include/WeaponController.h"
 using namespace std;
+using namespace ComponentSystem;
 
 WeaponController::WeaponController(const WeaponType mType, EntityFactory& mFactory, ComponentSystem::EntityManager& mManager,
 	eventpp::EventDispatcher<int, void(int)>& mDispatcher, sf::RenderWindow& mWindow, sf::Vector2f& mPos) :
@@ -79,7 +80,11 @@ void WeaponController::GunAttack()
 		direction = directionNormalized;
 	}
 	float speedTemp(0.5f);
-	factory.CreateProjectile(weaponMountPoint, direction, window, speedTemp, 1);
+	auto& gun(factory.CreateProjectile(weaponMountPoint, direction, window, speedTemp, 1));
+	auto& gunP(gun.GetComponent<CParticle>());
+	gunP.SetGravity(1.f, 1.f);
+	gunP.SetParticleSpeed(1.f);
+	gunP.Fuel(15);
 }
 
 void WeaponController::KnifeAttack()

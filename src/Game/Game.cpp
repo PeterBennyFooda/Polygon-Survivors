@@ -249,14 +249,13 @@ void Game::FixedUpdate()
 			continue;
 		if (GameState == GameStates::Stage)
 		{
+			if (this->playerWeapon != nullptr)
+				this->playerWeapon->Update(ftStep);
 			//Passing 'ftStep' instead of 'lastFrameTime' because
 			//we want to ensure the ideal 'frame time' is constant.
 			manager.Refresh();
 			manager.Update(ftStep);
 		}
-
-		if (this->playerWeapon != nullptr)
-			this->playerWeapon->Update(ftStep);
 	}
 }
 
@@ -272,12 +271,11 @@ void Game::Update()
 		return;
 	if (GameState == GameStates::Stage)
 	{
+		if (this->playerWeapon != nullptr)
+			this->playerWeapon->Update(ftStep);
 		manager.Refresh();
 		manager.Update(lastFrameTime);
 	}
-
-	if (this->playerWeapon != nullptr)
-		this->playerWeapon->Update(lastFrameTime);
 }
 
 void Game::Render()

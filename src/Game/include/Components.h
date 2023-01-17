@@ -681,4 +681,214 @@ public:
 			Die();
 	}
 };
+
+/*
+ * (9) CParticle
+ *
+ * This Component is a particle emitter.
+ *
+ * Entity with this component can emit particles.
+ */
+struct Particle
+{
+	sf::Vector2f pos; // Position
+	sf::Vector2f vel; // Velocity
+	sf::Color color;  // RGBA
+};
+enum Shape
+{
+	CIRCLE,
+	SQUARE
+};
+struct CParticle : Component
+{
+private:
+	sf::Vector2f position; // Particle origin (pixel co-ordinates)
+	sf::Vector2f gravity;  // Affects particle velocities
+	sf::Color transparent; // sf::Color( 0, 0, 0, 0 )
+	sf::Image image;
+	sf::Texture texture;		 // See render() and remove()
+	sf::Sprite sprite;			 // Connected to image
+	float particleSpeed { 1.f }; // Pixels per second (at most)
+	bool dissolve { false };	 // Dissolution enabled?
+	unsigned char dissolutionRate { 4 };
+	unsigned char shape { Shape::SQUARE };
+
+	sf::RenderWindow& window;
+
+	std::list<Particle*> particles;
+	std::random_device randDevice {};
+	std::default_random_engine randGenerator { randDevice() };
+
+public:
+	CParticle(int width, int height, sf::RenderWindow& target) :
+		window(target)
+	{
+		transparent = sf::Color(0, 0, 0, 0);
+		image.create(width, height, transparent);
+		texture.loadFromImage(image);
+		sprite.setTexture(texture, true);
+
+		position.x = 0.5f * width;
+		position.y = 0.5f * height;
+	}
+
+	~CParticle()
+	{
+		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
+		{
+			delete *it;
+		}
+	};
+
+	float Randomizer(float min, float max)
+	{
+		std::uniform_int_distribution<int> unif(min, max);
+		int result = unif(randGenerator);
+
+		return result;
+	}
+
+	// Updates position, velocity and opacity of all particles.
+	void Update(float mFT) override
+	{
+		Remove();
+		int ct = 0;
+		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
+		{
+			(*it)->vel.x += gravity.x * mFT;
+			(*it)->vel.y += gravity.y * mFT;
+
+			(*it)->pos.x += (*it)->vel.x * mFT * particleSpeed;
+			(*it)->pos.y += (*it)->vel.y * mFT * particleSpeed;
+			ct++;
+			std::cout << std::to_string((*it)->pos.x) << "/" << std::to_string((*it)->pos.y) << "/" << ct << std::endl;
+
+			if (dissolve)
+				(*it)->color.a -= dissolutionRate;
+
+			if ((*it)->pos.x > image.getSize().x || (*it)->pos.x < 0
+				|| (*it)->pos.y > image.getSize().y || (*it)->pos.y < 0 || (*it)->color.a < 10)
+			{
+				std::cout << "delete p" << ct << std::endl;
+				delete (*it);
+				it = particles.erase(it);
+				if (it == particles.end())
+					return;
+			}
+		}
+	};
+
+	// Renders all particles onto image.
+	void Render() override
+	{
+		float ct = 0;
+		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
+		{
+			ct++;
+			image.setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, (*it)->color);
+			std::cout << "render p" << ct << "/" << std::to_string((int)(*it)->pos.x) << "/" << std::to_string((int)(*it)->pos.y) << std::endl;
+		}
+		window.draw(sprite);
+	};
+
+	// Removes all particles from image.
+	void Remove()
+	{
+		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
+		{
+			image.setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, transparent);
+		}
+	};
+
+	// Adds new particles to particles.
+	void Fuel(int count)
+	{
+		float angle;
+		Particle* particle;
+		for (int i = 0; i < count; i++)
+		{
+			particle = new Particle();
+			particle->pos.x = position.x;
+			particle->pos.y = position.y;
+
+			switch (shape)
+			{
+				case Shape::CIRCLE:
+					angle = Randomizer(0.0f, 6.2832f);
+					particle->vel.x = Randomizer(0.0f, cos(angle));
+					particle->vel.y = Randomizer(0.0f, sin(angle));
+					break;
+				case Shape::SQUARE:
+					particle->vel.x = Randomizer(-1.0f, 1.0f);
+					particle->vel.y = Randomizer(-1.0f, 1.0f);
+					break;
+				default:
+					particle->vel.x = 0.5f; // Easily detected
+					particle->vel.y = 0.5f; // Easily detected
+			}
+
+			if (particle->vel.x == 0.0f && particle->vel.y == 0.0f)
+			{
+				delete particle;
+				continue;
+			}
+
+			particle->color.r = Randomizer(0, 255);
+			particle->color.g = Randomizer(0, 255);
+			particle->color.b = Randomizer(0, 255);
+			particle->color.a = 255;
+			particles.push_back(particle);
+		}
+	};
+
+	void SetPosition(float x, float y)
+	{
+		position.x = x;
+		position.y = y;
+	}
+
+	void SetGravity(float x, float y)
+	{
+		gravity.x = x;
+		gravity.y = y;
+	}
+
+	void SetParticleSpeed(float speed)
+	{
+		particleSpeed = speed;
+	}
+
+	void SetDissolve(bool enable)
+	{
+		dissolve = enable;
+	}
+
+	void SetDissolutionRate(unsigned char rate)
+	{
+		dissolutionRate = rate;
+	}
+
+	void SetShape(unsigned char shape)
+	{
+		shape = shape;
+	}
+
+	int GetNumberOfParticles()
+	{
+		return particles.size();
+	}
+
+	std::string GetNumberOfParticlesString()
+	{
+		std::ostringstream oss;
+		oss << particles.size();
+		return oss.str();
+	};
+
+	sf::Sprite& GetSprite()
+	{
+		return sprite;
+	}
+};
 }

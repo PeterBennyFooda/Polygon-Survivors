@@ -75,6 +75,7 @@ ComponentSystem::GameEntity& EntityFactory::CreateProjectile(const sf::Vector2f&
 
 	projectile.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
 	projectile.AddComponent<CProjectile>(BulletBaseSpeed * speedMod, direction, damage);
+	projectile.AddComponent<CParticle>(ScreenWidth, ScreenHeight, target);
 
 	projectile.AddGroup(EntityGroup::Projectile);
 
