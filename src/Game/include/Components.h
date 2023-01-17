@@ -220,6 +220,7 @@ public:
 struct CPlayerControl : Component
 {
 private:
+	float slowMod { 0.5f };
 	CPhysics* physics { nullptr };
 	CTransform* transform { nullptr };
 
@@ -253,18 +254,23 @@ public:
 			return;
 		}
 
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift))
+			slowMod = 0.5f;
+		else
+			slowMod = 1.f;
+
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-			physics->Velocity.x = -PlayerSpeed;
+			physics->Velocity.x = -PlayerSpeed * slowMod;
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-			physics->Velocity.x = PlayerSpeed;
+			physics->Velocity.x = PlayerSpeed * slowMod;
 		else
 			physics->Velocity.x = 0;
 
 		//Note: In SFML origin (0,0) is at the top left corner.
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
-			physics->Velocity.y = -PlayerSpeed;
+			physics->Velocity.y = -PlayerSpeed * slowMod;
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
-			physics->Velocity.y = PlayerSpeed;
+			physics->Velocity.y = PlayerSpeed * slowMod;
 		else
 			physics->Velocity.y = 0;
 	}
