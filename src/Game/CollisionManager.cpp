@@ -18,6 +18,17 @@ CollisionManager::CollisionManager(ComponentSystem::EntityManager& mManager, eve
 		UNUSED(n);
 		stop = true;
 	});
+
+	//TO BE DONE IN A AUDIO CONTROLLER
+	if (!hurtBuffer.loadFromFile(HurtSoundPath))
+	{
+		//error...
+	}
+	if (!dieBuffer.loadFromFile(DieSoundPath))
+	{
+		//error...
+	}
+	sound.setVolume(45.f);
 }
 
 void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
@@ -45,6 +56,9 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 				{
 					gameDispatcher.dispatch(EventNames::ScoreChange, HurtPenalty);
 					gameDispatcher.dispatch(EventNames::PlayerHPChange, -1);
+
+					sound.setBuffer(hurtBuffer);
+					sound.play();
 				}
 
 				statB.Hit(1);
@@ -72,6 +86,9 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 				{
 					gameDispatcher.dispatch(EventNames::ScoreChange, HurtPenalty);
 					gameDispatcher.dispatch(EventNames::PlayerHPChange, -1);
+
+					sound.setBuffer(hurtBuffer);
+					sound.play();
 				}
 
 				statA.Hit(1);
@@ -101,11 +118,18 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 			auto& pjA(a.GetComponent<CProjectile>());
 
 			if (statB.IsDead)
+			{
 				gameDispatcher.dispatch(EventNames::ScoreChange, statB.GetScore());
+				sound.setBuffer(dieBuffer);
+				sound.play();
+			}
 			else
 			{
 				statB.Hit(pjA.Damage);
 				a.Destroy();
+
+				sound.setBuffer(hurtBuffer);
+				sound.play();
 			}
 		}
 		else if (b.HasGroup(EntityGroup::Projectile) && a.HasGroup(EntityGroup::Enemy))
@@ -114,11 +138,18 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 			auto& pjB(b.GetComponent<CProjectile>());
 
 			if (statA.IsDead)
+			{
 				gameDispatcher.dispatch(EventNames::ScoreChange, statA.GetScore());
+				sound.setBuffer(dieBuffer);
+				sound.play();
+			}
 			else
 			{
 				statA.Hit(pjB.Damage);
 				b.Destroy();
+
+				sound.setBuffer(hurtBuffer);
+				sound.play();
 			}
 		}
 	}

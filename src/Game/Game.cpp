@@ -29,6 +29,18 @@ void Game ::Init()
 	timePoint1 = std::chrono::steady_clock::now();
 	timePoint2 = std::chrono::steady_clock::now();
 
+	//TO BE DONE IN A AUDIO CONTROLLER
+	if (!bgm.openFromFile(BGMPath))
+	{
+		//error..
+	}
+	else
+	{
+		bgm.setLoop(true);
+		bgm.setVolume(50.f);
+		bgm.play();
+	}
+
 	//Create entity factory.
 	this->entityFactory = new EntityFactory(manager);
 

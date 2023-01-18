@@ -48,6 +48,10 @@ private:
 	bool spawnLock { false };
 	EnemySpawnMode currentWaveMode { EnemySpawnMode::Easy };
 
+	//TO BE DONE IN A AUDIO CONTROLLER
+	sf::Music bgm;
+	sf::Sound sound;
+
 	void Init();
 	void InitLevel();
 	void InitPlayer();

@@ -16,6 +16,17 @@ WeaponController::WeaponController(const WeaponType mType, EntityFactory& mFacto
 
 void WeaponController::Init()
 {
+	//TO BE DONE IN A AUDIO CONTROLLER
+	if (!buffer.loadFromFile(ShootSoundPath))
+	{
+		//error...
+	}
+	else
+	{
+		sound.setBuffer(buffer);
+		sound.setVolume(35.f);
+	}
+
 	stop = false;
 	gameDispatcher.appendListener(EventNames::GameStart, [this](int n) {
 		UNUSED(n);
@@ -74,6 +85,9 @@ void WeaponController::Attack()
 
 void WeaponController::GunAttack()
 {
+	//TO BE DONE IN A AUDIO CONTROLLER
+	sound.play();
+
 	sf::Vector2f mousePos = sf::Vector2f(sf::Mouse::getPosition(window));
 	sf::Vector2f direction = mousePos - weaponMountPoint;
 	float length = sqrt((direction.x * direction.x) + (direction.y * direction.y));

@@ -23,6 +23,10 @@ private:
 	sf::Vector2f& weaponMountPoint;
 	bool stop { true };
 
+	//TO BE DONE IN A AUDIO CONTROLLER
+	sf::SoundBuffer buffer;
+	sf::Sound sound;
+
 public:
 	WeaponController(const WeaponType mType, EntityFactory& mFactory, ComponentSystem::EntityManager& mManager,
 		eventpp::EventDispatcher<int, void(int)>& mDispatcher, sf::RenderWindow& mWindow, sf::Vector2f& mPos);
