@@ -29,6 +29,10 @@ public:
 	void GenerateEnemy(EnemySpawnMode mode);
 	void GenerateEnemy(int count, EnemySpawnMode mode);
 
+	void GenerateChasers(int count, EnemySpawnMode mode);
+	void GenerateCowards(int count, EnemySpawnMode mode);
+	void GeneratePongs(int count, EnemySpawnMode mode);
+
 	int RandomX();
 	int RandomY();
 	int RandomSign();

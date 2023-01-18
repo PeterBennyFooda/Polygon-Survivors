@@ -48,7 +48,8 @@ enum EntityGroup : std::size_t
 	Enemy,
 	Obstacle,
 	Projectile,
-	Weapon
+	Weapon,
+	Consumable
 };
 
 enum WeaponType

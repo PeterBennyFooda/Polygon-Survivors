@@ -154,11 +154,11 @@ private:
 	sf::Vector2f gravity;  // Affects particle velocities
 	sf::Color transparent; // sf::Color( 0, 0, 0, 0 )
 	sf::Image image;
-	sf::Texture texture; // See render() and remove()
-	sf::Sprite sprite;	 // Connected to image
+	sf::Texture texture;
+	sf::Sprite sprite; // Connected to Texture
 	sf::Color color;
-	float particleSpeed { 1.f }; // Pixels per second (at most)
-	bool dissolve { false };	 // Dissolution enabled?
+	float particleSpeed { 1.f };
+	bool dissolve { false }; // Dissolution enabled?
 	unsigned char dissolutionRate { 4 };
 	unsigned char shape { Shape::SQUARE };
 
@@ -168,6 +168,8 @@ private:
 	std::random_device randDevice {};
 	std::default_random_engine randGenerator { randDevice() };
 	CTransform* transform { nullptr };
+
+	bool emitting { false };
 
 public:
 	CParticle(int width, int height, sf::RenderWindow& target) :
@@ -189,14 +191,23 @@ public:
 
 	void Init() override
 	{
-		transform = &Entity->GetComponent<CTransform>();
-		position = transform->Position;
+		//If the entity has transform, set the defulat position to where it is.
+		if (Entity->HasComponent<CTransform>())
+		{
+			transform = &Entity->GetComponent<CTransform>();
+			position = transform->Position;
+		}
+		else
+		{
+			position.x = image.getSize().x / 2;
+			position.y = image.getSize().y / 2;
+		}
 	}
 
 	float Randomizer(float min, float max)
 	{
-		std::uniform_int_distribution<int> unif(min, max);
-		int result = unif(randGenerator);
+		std::uniform_real_distribution<float> unif(min, max);
+		float result = unif(randGenerator);
 
 		return result;
 	}
@@ -204,6 +215,9 @@ public:
 	// Updates position, velocity and opacity of all particles.
 	void Update(float mFT) override
 	{
+		if (!emitting)
+			return;
+
 		Remove();
 		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
 		{
@@ -230,6 +244,9 @@ public:
 	// Renders all particles onto image.
 	void Render() override
 	{
+		if (!emitting)
+			return;
+
 		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
 		{
 			image.setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, (*it)->color);
@@ -242,10 +259,16 @@ public:
 	// Removes all particles from image.
 	void Remove()
 	{
+		if (!emitting)
+			return;
+
 		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
 		{
 			image.setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, transparent);
 		}
+
+		if (particles.size() <= 0)
+			emitting = false;
 	};
 
 	// Adds new particles to particles.
@@ -253,6 +276,10 @@ public:
 	{
 		float angle;
 		Particle* particle;
+
+		if (count > 0)
+			emitting = true;
+
 		for (int i = 0; i < count; i++)
 		{
 			particle = new Particle();
@@ -356,8 +383,9 @@ public:
 struct CStat : Component
 {
 private:
-	float hitCoolDown = { 0.5f };
+	const float baseHitcoolDown = { 0.5f };
 	float hitTimer = { 0.f };
+	float hitCoolDown = { 0.5f };
 	float particleTimer = { 0.f };
 	float particleCoolDown = { 0.3f };
 	CSprite2D* sprite { nullptr };
@@ -383,7 +411,11 @@ public:
 	{
 		transform = &Entity->GetComponent<CTransform>();
 		sprite = &Entity->GetComponent<CSprite2D>();
-		particleEmitter = &Entity->GetComponent<CParticle>();
+
+		//Particle is optional.
+		if (Entity->HasComponent<CParticle>())
+			particleEmitter = &Entity->GetComponent<CParticle>();
+
 		hitCoolDown = HitCoolDown;
 		Score = Health;
 	}
@@ -402,10 +434,19 @@ public:
 		HitEffect();
 		if (!IsDead && !IsInvincible)
 		{
-			HitProtection();
+			HitProtection(baseHitcoolDown);
 			Health -= damage;
 		}
 		CheckDeath();
+	}
+
+	void HitProtection(float cooldDown)
+	{
+		if (!IsInvincible && CanBeProtect)
+		{
+			hitCoolDown = cooldDown;
+			IsInvincible = true;
+		}
 	}
 
 	int GetScore()
@@ -426,13 +467,8 @@ private:
 			Health = 0;
 			IsDead = true;
 			HitEffect();
+			sprite->ChangeColor(sf::Color::Red);
 		}
-	}
-
-	void HitProtection()
-	{
-		if (!IsInvincible && CanBeProtect)
-			IsInvincible = true;
 	}
 
 	void HitProtectionTimer(float mFT)
@@ -467,15 +503,17 @@ private:
 
 	void HitEffect()
 	{
-		if (particleTimer == 0)
+		if (particleEmitter != nullptr)
 		{
-			sprite->ChangeColor(sf::Color::Red);
-			particleEmitter->SetPosition(transform->Position.x, transform->Position.y);
-			particleEmitter->SetShape(Shape::CIRCLE);
-			particleEmitter->SetColor(sf::Color::Red);
-			particleEmitter->SetParticleSpeed(100);
-			particleEmitter->SetGravity(0.5f, 0.5f);
-			particleEmitter->Fuel(10);
+			if (particleTimer == 0)
+			{
+				particleEmitter->SetColor(sf::Color::Red);
+				particleEmitter->SetPosition(transform->Position.x, transform->Position.y);
+				particleEmitter->SetShape(Shape::CIRCLE);
+				particleEmitter->SetParticleSpeed(100);
+				particleEmitter->SetGravity(0.5f, 0.5f);
+				particleEmitter->Fuel(20);
+			}
 		}
 	}
 };
@@ -575,6 +613,7 @@ private:
 	float slowMod { 0.5f };
 	CPhysics* physics { nullptr };
 	CTransform* transform { nullptr };
+	CStat* stat { nullptr };
 
 public:
 	float PlayerSpeed;
@@ -588,6 +627,7 @@ public:
 	{
 		physics = &Entity->GetComponent<CPhysics>();
 		transform = &Entity->GetComponent<CTransform>();
+		stat = &Entity->GetComponent<CStat>();
 
 		//Register out of bound event to prevent player from going out of borders.
 		physics->OnOutOfBounds = [this](const sf::Vector2f& mSide) {
@@ -612,17 +652,17 @@ public:
 			slowMod = 1.f;
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-			physics->Velocity.x = -PlayerSpeed * slowMod;
+			physics->Velocity.x = -PlayerSpeed * stat->SpeedMod * slowMod;
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-			physics->Velocity.x = PlayerSpeed * slowMod;
+			physics->Velocity.x = PlayerSpeed * stat->SpeedMod * slowMod;
 		else
 			physics->Velocity.x = 0;
 
 		//Note: In SFML origin (0,0) is at the top left corner.
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
-			physics->Velocity.y = -PlayerSpeed * slowMod;
+			physics->Velocity.y = -PlayerSpeed * stat->SpeedMod * slowMod;
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
-			physics->Velocity.y = PlayerSpeed * slowMod;
+			physics->Velocity.y = PlayerSpeed * stat->SpeedMod * slowMod;
 		else
 			physics->Velocity.y = 0;
 	}
@@ -752,8 +792,8 @@ private:
 			direction = directionNormalized;
 		}
 
-		physics->Velocity.x = EnemySpeed * direction.x;
-		physics->Velocity.y = EnemySpeed * direction.y;
+		physics->Velocity.x = EnemySpeed * stat->SpeedMod * direction.x;
+		physics->Velocity.y = EnemySpeed * stat->SpeedMod * direction.y;
 	}
 
 	void AvoidPlayerMove(float mFT)
@@ -782,13 +822,13 @@ private:
 
 		if (distance < avoidRadius)
 		{
-			physics->Velocity.x = EnemySpeed * -direction.x;
-			physics->Velocity.y = EnemySpeed * -direction.y;
+			physics->Velocity.x = EnemySpeed * stat->SpeedMod * -direction.x;
+			physics->Velocity.y = EnemySpeed * stat->SpeedMod * -direction.y;
 		}
 		else if (distance > avoidRadius)
 		{
-			physics->Velocity.x = EnemySpeed * direction.x * 0.5f;
-			physics->Velocity.y = EnemySpeed * direction.y * 0.5f;
+			physics->Velocity.x = EnemySpeed * stat->SpeedMod * direction.x * 0.5f;
+			physics->Velocity.y = EnemySpeed * stat->SpeedMod * direction.y * 0.5f;
 		}
 	}
 
@@ -798,7 +838,7 @@ private:
 		SmoothRotate(mFT);
 
 		if (physics->Left() <= 0.1f)
-			physics->Velocity.x = EnemySpeed;
+			physics->Velocity.x = EnemySpeed * stat->SpeedMod;
 		else if (physics->Right() >= physics->BorderWidth - 0.1f)
 			physics->Velocity.x = -EnemySpeed;
 
@@ -806,7 +846,7 @@ private:
 		if (physics->Top() <= 0.1f)
 			physics->Velocity.y = EnemySpeed;
 		else if (physics->Bottom() >= physics->BorderHeight - 0.1f)
-			physics->Velocity.y = -EnemySpeed;
+			physics->Velocity.y = -EnemySpeed * stat->SpeedMod;
 	}
 
 	void OnOutOfBoundsEvent(const sf::Vector2f& mSide)
@@ -932,6 +972,124 @@ public:
 		UNUSED(mSide);
 		if (!isDead)
 			Die();
+	}
+};
+
+/*
+ * (10) CConsumable
+ *
+ * This Component defines an consumable item.
+ *
+ * Entity with this component is considered
+ * a consumable item that gives an effect to
+ * who picks it up with CReceiver.
+ */
+enum ConsumableType
+{
+	AttackSpeed,
+	InstantKill,
+	Invincible
+};
+struct ConsumableInfo
+{
+	float Multiplier;
+	float Duration;
+	float Timer;
+	ConsumableType Type;
+};
+struct CConsumable : Component
+{
+private:
+	ConsumableInfo info;
+
+	CConsumable()
+	{
+		info.Multiplier = 1.f;
+		info.Duration = 1.f;
+		info.Type = ConsumableType::Invincible;
+		info.Timer = 0;
+	}
+
+public:
+	void SetInfo(float mult, float duration, ConsumableType type)
+	{
+		info.Multiplier = mult;
+		info.Duration = duration;
+		info.Type = type;
+		info.Timer = 0;
+	}
+
+	ConsumableInfo GetInfo()
+	{
+		return info;
+	}
+};
+
+/*
+ * (11) CReceiver
+ *
+ * This Component defines an consumable receiver.
+ *
+ * Entity with this component can pick up and consum
+ * an consumable item to receive effects.
+ */
+struct CReceiver : Component
+{
+private:
+	std::vector<ConsumableInfo> currentEffects;
+	CStat* stat;
+
+public:
+	void Init() override
+	{
+		stat = &Entity->GetComponent<CStat>();
+	}
+
+	void Update(float mFT) override
+	{
+		CleanEffect();
+		ProcessEffect(mFT);
+	}
+
+	void ReceiveEffect(ConsumableInfo info)
+	{
+		currentEffects.push_back(info);
+	}
+
+private:
+	void ProcessEffect(float mFT)
+	{
+		for (auto& e : currentEffects)
+		{
+			if (e.Timer < e.Duration)
+			{
+				e.Timer += mFT;
+
+				switch (e.Type)
+				{
+					case ConsumableType::AttackSpeed:
+						break;
+					case ConsumableType::InstantKill:
+						break;
+					case ConsumableType::Invincible:
+						break;
+					default:
+						break;
+				}
+			}
+			else
+				e.Timer = e.Duration;
+		}
+	}
+
+	void CleanEffect()
+	{
+		//Remove expired effects.
+		currentEffects.erase(
+			std::remove_if(std::begin(currentEffects), std::end(currentEffects), [](const ConsumableInfo mEffect) {
+				return mEffect.Timer >= mEffect.Duration;
+			}),
+			std::end(currentEffects));
 	}
 };
 }

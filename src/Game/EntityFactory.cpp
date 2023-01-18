@@ -12,11 +12,12 @@ GameEntity& EntityFactory::CreatePlayer(const sf::Vector2f& position, sf::Render
 	sf::Vector2f halfSize(playerSprite.Origin);
 
 	player.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
-	player.AddComponent<CPlayerControl>(PlayerBaseSpeed);
 	player.AddComponent<CParticle>(ScreenWidth, ScreenHeight, target);
 
 	auto& playerStat(player.AddComponent<CStat>(3, 1));
 	playerStat.CanBeProtect = true;
+	player.AddComponent<CPlayerControl>(PlayerBaseSpeed);
+
 	player.AddGroup(EntityGroup::Player);
 
 	return player;

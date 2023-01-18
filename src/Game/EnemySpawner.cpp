@@ -11,6 +11,21 @@ void EnemySpawner::GenerateEnemy(EnemySpawnMode mode)
 }
 void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 {
+	GenerateChasers(count, mode);
+	if (mode == EnemySpawnMode::Easy)
+		return;
+
+	GenerateCowards(count, mode);
+	if (mode == EnemySpawnMode::Normal)
+		return;
+
+	GeneratePongs(count, mode);
+	if (mode == EnemySpawnMode::Hard)
+		return;
+}
+
+void EnemySpawner::GenerateChasers(int count, EnemySpawnMode mode)
+{
 	int randomOffestX = RandomX() * RandomSign();
 	int randomOffestY = RandomY() * RandomSign();
 
@@ -20,21 +35,24 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 		factory.CreateEnemy(center + sf::Vector2f(randomOffestX, randomOffestY), window, 0.8f, EnemyBaseHealth);
 		randomOffestX = RandomX();
 		randomOffestY = RandomY();
-		//cout << randomOffestX << "|" << i << "|" << randomOffestY << endl;
+		//cout << randomOffestX << "+" << center.x << "||" << randomOffestY << "+" << center.y << endl;
 		CheckTooClose(randomOffestX, randomOffestY);
 		randomOffestX *= RandomSign();
 		randomOffestY *= RandomSign();
-		//cout << randomOffestX << "=" << i << "=" << randomOffestY << endl;
+		//cout << randomOffestX << "+" << center.x << "==" << randomOffestY << "+" << center.y << endl;
 	}
-	if (mode == EnemySpawnMode::Easy)
-		return;
+}
+void EnemySpawner::GenerateCowards(int count, EnemySpawnMode mode)
+{
+	int randomOffestX = RandomX() * RandomSign();
+	int randomOffestY = RandomY() * RandomSign();
 
 	//Init cowards.
 	for (int i = 0; i < count; i++)
 	{
 		factory.CreateEnemy(center + sf::Vector2f(randomOffestX, randomOffestY),
 			window,
-			2.f,
+			1.5f,
 			EnemyMoveType::AvoidPlayer,
 			EnemyBaseHealth * 2);
 		randomOffestX = RandomX();
@@ -43,15 +61,17 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 		randomOffestX *= RandomSign();
 		randomOffestY *= RandomSign();
 	}
-	if (mode == EnemySpawnMode::Normal)
-		return;
+}
+void EnemySpawner::GeneratePongs(int count, EnemySpawnMode mode)
+{
+	int randomOffestX = RandomX() * RandomSign();
+	int randomOffestY = RandomY() * RandomSign();
 
-	//Init ping pong guys.
 	for (int i = 0; i < count; i++)
 	{
 		factory.CreateEnemy(center + sf::Vector2f(randomOffestX, randomOffestY),
 			window,
-			0.75f,
+			0.55f,
 			EnemyMoveType::PingPong,
 			EnemyBaseHealth * 3);
 
