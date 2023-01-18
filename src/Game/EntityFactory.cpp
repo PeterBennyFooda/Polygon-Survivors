@@ -12,7 +12,7 @@ GameEntity& EntityFactory::CreatePlayer(const sf::Vector2f& position, sf::Render
 	sf::Vector2f halfSize(playerSprite.Origin);
 
 	player.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
-	player.AddComponent<CParticle>(ScreenWidth, ScreenHeight, target);
+	player.AddComponent<CParticle>(target);
 
 	auto& playerStat(player.AddComponent<CStat>(3, 1));
 	playerStat.CanBeProtect = true;
@@ -51,7 +51,7 @@ GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderW
 	sf::Vector2f halfSize(enemySprite.Origin);
 
 	enemy.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
-	enemy.AddComponent<CParticle>(ScreenWidth, ScreenHeight, target);
+	enemy.AddComponent<CParticle>(target);
 
 	auto& enemyStat(enemy.AddComponent<CStat>(health, speedMod));
 	enemyStat.CanBeProtect = true;

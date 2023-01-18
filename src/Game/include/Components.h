@@ -153,7 +153,7 @@ private:
 	sf::Vector2f position; // Particle origin (pixel co-ordinates)
 	sf::Vector2f gravity;  // Affects particle velocities
 	sf::Color transparent; // sf::Color( 0, 0, 0, 0 )
-	sf::Image image;
+	sf::Image* image;
 	sf::Texture texture;
 	sf::Sprite sprite; // Connected to Texture
 	sf::Color color;
@@ -172,13 +172,10 @@ private:
 	bool emitting { false };
 
 public:
-	CParticle(int width, int height, sf::RenderWindow& target) :
+	CParticle(sf::RenderWindow& target) :
 		window(target)
 	{
-		transparent = sf::Color(0, 0, 0, 0);
-		image.create(width, height, transparent);
-		texture.loadFromImage(image);
-		sprite.setTexture(texture, true);
+		image = NULL;
 	}
 
 	~CParticle()
@@ -187,6 +184,7 @@ public:
 		{
 			delete *it;
 		}
+		delete image;
 	};
 
 	void Init() override
@@ -199,15 +197,16 @@ public:
 		}
 		else
 		{
-			position.x = image.getSize().x / 2;
-			position.y = image.getSize().y / 2;
+			position.x = ScreenWidth / 2;
+			position.y = ScreenHeight / 2;
 		}
+		transparent = sf::Color(0, 0, 0, 0);
 	}
 
 	// Updates position, velocity and opacity of all particles.
 	void Update(float mFT) override
 	{
-		if (!emitting)
+		if (!emitting || image == NULL)
 			return;
 
 		Remove();
@@ -222,8 +221,8 @@ public:
 			if (dissolve)
 				(*it)->color.a -= dissolutionRate;
 
-			if ((*it)->pos.x > image.getSize().x || (*it)->pos.x < 0
-				|| (*it)->pos.y > image.getSize().y || (*it)->pos.y < 0 || (*it)->color.a < 10)
+			if ((*it)->pos.x > image->getSize().x || (*it)->pos.x < 0
+				|| (*it)->pos.y > image->getSize().y || (*it)->pos.y < 0 || (*it)->color.a < 10)
 			{
 				delete (*it);
 				it = particles.erase(it);
@@ -236,14 +235,16 @@ public:
 	// Renders all particles onto image.
 	void Render() override
 	{
-		if (!emitting)
+		if (!emitting || &image == NULL)
 			return;
 
 		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
 		{
-			image.setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, (*it)->color);
+			if (&image == NULL)
+				return;
+			image->setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, (*it)->color);
 		}
-		texture.loadFromImage(image);
+		texture.loadFromImage(*image);
 		sprite.setTexture(texture, true);
 		window.draw(sprite);
 	};
@@ -252,12 +253,14 @@ private:
 	// Removes all particles from image.
 	void Remove()
 	{
-		if (!emitting)
+		if (!emitting || &image == NULL)
 			return;
 
 		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
 		{
-			image.setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, transparent);
+			if (&image == NULL)
+				return;
+			image->setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, transparent);
 		}
 
 		if (particles.size() <= 0)
@@ -278,6 +281,12 @@ public:
 	{
 		float angle;
 		Particle* particle;
+
+		if (image == NULL)
+		{
+			image = new sf::Image();
+			image->create(ScreenWidth, ScreenHeight, transparent);
+		}
 
 		if (count > 0)
 			emitting = true;
@@ -395,8 +404,9 @@ private:
 	CParticle* particleEmitter { nullptr };
 	CTransform* transform { nullptr };
 
-	std::random_device randDevice {};
-	std::default_random_engine randGenerator { randDevice() };
+	//std::random_device randDevice {};
+	std::seed_seq randSeed { std::chrono::system_clock::now().time_since_epoch().count() };
+	std::default_random_engine randGenerator { randSeed };
 
 public:
 	int Health { 3 };
@@ -520,15 +530,19 @@ private:
 			particleEmitter->SetParticleSpeed(100);
 
 			float grvMod = Randomizer(-1, 1);
-			float grvSpd = grvMod * 5.f;
-			particleEmitter->SetGravity(grvSpd, grvSpd);
-			particleEmitter->Fuel(20);
+			float grvSpdX = grvMod * 5.f;
+			grvMod = Randomizer(-1, 1);
+			float grvSpdY = grvMod * 5.f;
+
+			particleEmitter->SetGravity(grvSpdX, grvSpdY);
+			particleEmitter->Fuel(10);
+			std::cout << grvSpdX << "/" << grvSpdY << std::endl;
 		}
 	}
 
 	int Randomizer(int min, int max)
 	{
-		std::uniform_int_distribution<int> unif(min, max);
+		std::uniform_int_distribution<> unif(min, max);
 		int result = unif(randGenerator);
 
 		return result;
