@@ -6,9 +6,12 @@
 
 class WeaponController
 {
+private:
+	const float baseRate { 0.2f };
+
 public:
 	WeaponType Type;
-	float FireInterval { 0.15f };
+	float FireInterval { 0.2f };
 	float FireWaitTimer { 0.f };
 
 private:

@@ -47,6 +47,11 @@ void WeaponController::Update(float mFT)
 			Attack();
 		FireWaitTimer += mFT;
 	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+		FireInterval = baseRate * 0.65f;
+	else
+		FireInterval = baseRate;
 }
 
 void WeaponController::Attack()

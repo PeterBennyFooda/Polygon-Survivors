@@ -42,7 +42,11 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 				auto& cB(b.GetComponent<CPlayerControl>());
 
 				if (!statB.IsInvincible)
+				{
+					gameDispatcher.dispatch(EventNames::ScoreChange, HurtPenalty);
 					gameDispatcher.dispatch(EventNames::PlayerHPChange, -1);
+				}
+
 				statB.Hit(1);
 
 				if (statB.IsDead)
@@ -65,7 +69,11 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 				auto& cA(a.GetComponent<CPlayerControl>());
 
 				if (!statA.IsInvincible)
+				{
+					gameDispatcher.dispatch(EventNames::ScoreChange, HurtPenalty);
 					gameDispatcher.dispatch(EventNames::PlayerHPChange, -1);
+				}
+
 				statA.Hit(1);
 
 				if (statA.IsDead)

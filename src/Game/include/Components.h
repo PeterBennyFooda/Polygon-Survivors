@@ -235,12 +235,12 @@ public:
 	// Renders all particles onto image.
 	void Render() override
 	{
-		if (!emitting || &image == NULL)
+		if (!emitting || image == NULL)
 			return;
 
 		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
 		{
-			if (&image == NULL)
+			if (image == NULL)
 				return;
 			image->setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, (*it)->color);
 		}
@@ -253,12 +253,12 @@ private:
 	// Removes all particles from image.
 	void Remove()
 	{
-		if (!emitting || &image == NULL)
+		if (!emitting || image == NULL)
 			return;
 
 		for (std::list<Particle*>::iterator it = particles.begin(); it != particles.end(); it++)
 		{
-			if (&image == NULL)
+			if (image == NULL)
 				return;
 			image->setPixel((int)(*it)->pos.x, (int)(*it)->pos.y, transparent);
 		}
@@ -300,11 +300,13 @@ public:
 			switch (shape)
 			{
 				case Shape::CIRCLE:
+					dissolve = true;
 					angle = Randomizer(0.0f, 6.2832f);
 					particle->vel.x = Randomizer(0.0f, cos(angle));
 					particle->vel.y = Randomizer(0.0f, sin(angle));
 					break;
 				case Shape::SQUARE:
+					dissolve = false;
 					particle->vel.x = Randomizer(-1.0f, 1.0f);
 					particle->vel.y = Randomizer(-1.0f, 1.0f);
 					break;
@@ -536,7 +538,6 @@ private:
 
 			particleEmitter->SetGravity(grvSpdX, grvSpdY);
 			particleEmitter->Fuel(10);
-			std::cout << grvSpdX << "/" << grvSpdY << std::endl;
 		}
 	}
 

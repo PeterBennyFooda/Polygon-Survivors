@@ -10,6 +10,7 @@ constexpr float EnemyBaseSpeed = 120.f;
 constexpr float EnemyRotateSpeed = 5.f;
 constexpr float BulletBaseSpeed = 400.f;
 constexpr float HitCoolDown = 0.25f;
+constexpr int HurtPenalty = -50;
 
 //Update Method
 constexpr bool UseDeltaTime { true };
