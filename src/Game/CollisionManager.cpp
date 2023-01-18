@@ -33,9 +33,10 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 		if (a.HasGroup(EntityGroup::Enemy))
 		{
 			auto& cA(a.GetComponent<CSimpleEnemyControl>());
+			auto& statA(a.GetComponent<CStat>());
 			cA.Stop = true;
 
-			if (b.HasGroup(EntityGroup::Player))
+			if (b.HasGroup(EntityGroup::Player) && !statA.IsDead)
 			{
 				auto& statB(b.GetComponent<CStat>());
 				auto& cB(b.GetComponent<CPlayerControl>());
@@ -48,7 +49,6 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 				{
 					gameDispatcher.dispatch(EventNames::GameOver);
 					cB.Stop = true;
-					cout << "DIE" << endl;
 				}
 			}
 		}
@@ -56,9 +56,10 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 		if (b.HasGroup(EntityGroup::Enemy))
 		{
 			auto& cB(b.GetComponent<CSimpleEnemyControl>());
+			auto& statB(b.GetComponent<CStat>());
 			cB.Stop = true;
 
-			if (a.HasGroup(EntityGroup::Player))
+			if (a.HasGroup(EntityGroup::Player) && !statB.IsDead)
 			{
 				auto& statA(a.GetComponent<CStat>());
 				auto& cA(a.GetComponent<CPlayerControl>());
@@ -71,7 +72,6 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 				{
 					gameDispatcher.dispatch(EventNames::GameOver);
 					cA.Stop = true;
-					cout << "DIE" << endl;
 				}
 			}
 		}
@@ -92,28 +92,26 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 			auto& statB(b.GetComponent<CStat>());
 			auto& pjA(a.GetComponent<CProjectile>());
 
-			statB.Hit(pjA.Damage);
-
 			if (statB.IsDead)
-			{
 				gameDispatcher.dispatch(EventNames::ScoreChange, statB.GetScore());
-				//b.Destroy();
+			else
+			{
+				statB.Hit(pjA.Damage);
+				a.Destroy();
 			}
-			a.Destroy();
 		}
 		else if (b.HasGroup(EntityGroup::Projectile) && a.HasGroup(EntityGroup::Enemy))
 		{
 			auto& statA(a.GetComponent<CStat>());
 			auto& pjB(b.GetComponent<CProjectile>());
 
-			statA.Hit(pjB.Damage);
-
 			if (statA.IsDead)
-			{
 				gameDispatcher.dispatch(EventNames::ScoreChange, statA.GetScore());
-				//a.Destroy();
+			else
+			{
+				statA.Hit(pjB.Damage);
+				b.Destroy();
 			}
-			b.Destroy();
 		}
 	}
 	else

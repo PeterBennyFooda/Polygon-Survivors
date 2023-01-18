@@ -11,20 +11,20 @@ void EnemySpawner::GenerateEnemy(EnemySpawnMode mode)
 }
 void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 {
-	GenerateChasers(count, mode);
+	GenerateChasers(count);
 	if (mode == EnemySpawnMode::Easy)
 		return;
 
-	GenerateCowards(count, mode);
+	GenerateCowards(count);
 	if (mode == EnemySpawnMode::Normal)
 		return;
 
-	GeneratePongs(count, mode);
+	GeneratePongs(count);
 	if (mode == EnemySpawnMode::Hard)
 		return;
 }
 
-void EnemySpawner::GenerateChasers(int count, EnemySpawnMode mode)
+void EnemySpawner::GenerateChasers(int count)
 {
 	int randomOffestX = RandomX() * RandomSign();
 	int randomOffestY = RandomY() * RandomSign();
@@ -42,7 +42,7 @@ void EnemySpawner::GenerateChasers(int count, EnemySpawnMode mode)
 		//cout << randomOffestX << "+" << center.x << "==" << randomOffestY << "+" << center.y << endl;
 	}
 }
-void EnemySpawner::GenerateCowards(int count, EnemySpawnMode mode)
+void EnemySpawner::GenerateCowards(int count)
 {
 	int randomOffestX = RandomX() * RandomSign();
 	int randomOffestY = RandomY() * RandomSign();
@@ -62,7 +62,7 @@ void EnemySpawner::GenerateCowards(int count, EnemySpawnMode mode)
 		randomOffestY *= RandomSign();
 	}
 }
-void EnemySpawner::GeneratePongs(int count, EnemySpawnMode mode)
+void EnemySpawner::GeneratePongs(int count)
 {
 	int randomOffestX = RandomX() * RandomSign();
 	int randomOffestY = RandomY() * RandomSign();
@@ -81,8 +81,6 @@ void EnemySpawner::GeneratePongs(int count, EnemySpawnMode mode)
 		randomOffestX *= RandomSign();
 		randomOffestY *= RandomSign();
 	}
-	if (mode == EnemySpawnMode::Hard)
-		return;
 }
 
 int EnemySpawner::RandomX()

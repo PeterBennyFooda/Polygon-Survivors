@@ -5,8 +5,8 @@
 class EnemySpawner
 {
 private:
-	const int Xmax = ScreenWidth / 2 + 100;
-	const int Ymax = ScreenHeight / 2 + 100;
+	const int Xmax = ScreenWidth;
+	const int Ymax = ScreenHeight;
 	const int min = 0;
 	const int dangerRadius = Xmax;
 	const sf::Vector2f center { ScreenWidth / 2.f, ScreenHeight / 2.f };
@@ -29,9 +29,9 @@ public:
 	void GenerateEnemy(EnemySpawnMode mode);
 	void GenerateEnemy(int count, EnemySpawnMode mode);
 
-	void GenerateChasers(int count, EnemySpawnMode mode);
-	void GenerateCowards(int count, EnemySpawnMode mode);
-	void GeneratePongs(int count, EnemySpawnMode mode);
+	void GenerateChasers(int count);
+	void GenerateCowards(int count);
+	void GeneratePongs(int count);
 
 	int RandomX();
 	int RandomY();

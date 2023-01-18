@@ -204,14 +204,6 @@ public:
 		}
 	}
 
-	float Randomizer(float min, float max)
-	{
-		std::uniform_real_distribution<float> unif(min, max);
-		float result = unif(randGenerator);
-
-		return result;
-	}
-
 	// Updates position, velocity and opacity of all particles.
 	void Update(float mFT) override
 	{
@@ -256,6 +248,7 @@ public:
 		window.draw(sprite);
 	};
 
+private:
 	// Removes all particles from image.
 	void Remove()
 	{
@@ -271,6 +264,15 @@ public:
 			emitting = false;
 	};
 
+	float Randomizer(float min, float max)
+	{
+		std::uniform_real_distribution<float> unif(min, max);
+		float result = unif(randGenerator);
+
+		return result;
+	}
+
+public:
 	// Adds new particles to particles.
 	void Fuel(int count)
 	{
@@ -386,11 +388,15 @@ private:
 	const float baseHitcoolDown = { 0.5f };
 	float hitTimer = { 0.f };
 	float hitCoolDown = { 0.5f };
-	float particleTimer = { 0.f };
-	float particleCoolDown = { 0.3f };
+	float deathTimer = { 0.f };
+	float deathCoolDown = { 5.f };
+
 	CSprite2D* sprite { nullptr };
 	CParticle* particleEmitter { nullptr };
 	CTransform* transform { nullptr };
+
+	std::random_device randDevice {};
+	std::default_random_engine randGenerator { randDevice() };
 
 public:
 	int Health { 3 };
@@ -464,10 +470,13 @@ private:
 	{
 		if (Health <= 0)
 		{
-			Health = 0;
-			IsDead = true;
-			HitEffect();
-			sprite->ChangeColor(sf::Color::Red);
+			if (!IsDead)
+			{
+				HitEffect();
+				sprite->ChangeColor(sf::Color(0, 0, 0, 0));
+				Health = 0;
+				IsDead = true;
+			}
 		}
 	}
 
@@ -492,11 +501,11 @@ private:
 
 	void DeathTimer(float mFT)
 	{
-		particleTimer += mFT;
+		deathTimer += mFT;
 
-		if (particleTimer > particleCoolDown)
+		if (deathTimer > deathCoolDown)
 		{
-			particleTimer = 0;
+			deathTimer = 0;
 			Entity->Destroy();
 		}
 	}
@@ -505,16 +514,24 @@ private:
 	{
 		if (particleEmitter != nullptr)
 		{
-			if (particleTimer == 0)
-			{
-				particleEmitter->SetColor(sf::Color::Red);
-				particleEmitter->SetPosition(transform->Position.x, transform->Position.y);
-				particleEmitter->SetShape(Shape::CIRCLE);
-				particleEmitter->SetParticleSpeed(100);
-				particleEmitter->SetGravity(0.5f, 0.5f);
-				particleEmitter->Fuel(20);
-			}
+			particleEmitter->SetColor(sf::Color::Red);
+			particleEmitter->SetPosition(transform->Position.x, transform->Position.y);
+			particleEmitter->SetShape(Shape::CIRCLE);
+			particleEmitter->SetParticleSpeed(100);
+
+			float grvMod = Randomizer(-1, 1);
+			float grvSpd = grvMod * 5.f;
+			particleEmitter->SetGravity(grvSpd, grvSpd);
+			particleEmitter->Fuel(20);
 		}
+	}
+
+	int Randomizer(int min, int max)
+	{
+		std::uniform_int_distribution<int> unif(min, max);
+		int result = unif(randGenerator);
+
+		return result;
 	}
 };
 
