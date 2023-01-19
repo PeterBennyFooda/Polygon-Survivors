@@ -291,7 +291,7 @@ public:
 		if (count > 0)
 			emitting = true;
 
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < count; ++i)
 		{
 			particle = new Particle();
 			particle->pos.x = position.x;
@@ -680,6 +680,8 @@ public:
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift))
 			slowMod = 0.5f;
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl))
+			slowMod = 1.5f;
 		else
 			slowMod = 1.f;
 
@@ -738,6 +740,9 @@ public:
 
 private:
 	const float avoidRadius { 150.f };
+	float waitInterval { 1.f };
+	float waitTimer { 0.f };
+	bool waitFlag { false };
 
 	CPhysics* physics { nullptr };
 	CTransform* transform { nullptr };
@@ -771,11 +776,15 @@ public:
 			physics->Velocity.x = EnemySpeed;
 			physics->Velocity.y = EnemySpeed;
 		}
+		else if (moveType == EnemyMoveType::Charger)
+			waitFlag = true;
 
 		//Register out of bound event to prevent enemy from going out of borders.
 		physics->OnOutOfBounds = [this](const sf::Vector2f& mSide) {
 			this->OnOutOfBoundsEvent(mSide);
 		};
+
+		waitInterval = EnemySpeed * stat->SpeedMod * 0.005f;
 	}
 
 	void Update(float mFT) override
@@ -800,6 +809,9 @@ public:
 				break;
 			case EnemyMoveType::PingPong:
 				PingPongMove(mFT);
+				break;
+			case EnemyMoveType::Charger:
+				ChargerMove(mFT);
 				break;
 			default:
 				ChasePlayerMove(mFT);
@@ -879,6 +891,39 @@ private:
 			physics->Velocity.y = EnemySpeed;
 		else if (physics->Bottom() >= physics->BorderHeight - 0.1f)
 			physics->Velocity.y = -EnemySpeed * stat->SpeedMod;
+	}
+
+	void ChargerMove(float mFT)
+	{
+		direction = targetPos - transform->Position;
+		float length = sqrt((direction.x * direction.x) + (direction.y * direction.y));
+
+		if (length != 0)
+		{
+			float normalX = direction.x / length;
+			float normalY = direction.y / length;
+			sf::Vector2f directionNormalized(normalX, normalY);
+			direction = directionNormalized;
+		}
+
+		SmoothRotate(mFT);
+
+		if (waitTimer < waitInterval && waitFlag)
+		{
+			physics->Velocity.x = EnemySpeed * stat->SpeedMod * -direction.x * 0.5f;
+			physics->Velocity.y = EnemySpeed * stat->SpeedMod * -direction.y * 0.5f;
+		}
+		else if (waitTimer < waitInterval && !waitFlag)
+		{
+			physics->Velocity.x = EnemySpeed * stat->SpeedMod * direction.x * 1.5f;
+			physics->Velocity.y = EnemySpeed * stat->SpeedMod * direction.y * 1.5f;
+		}
+		else if (waitTimer >= waitInterval)
+		{
+			waitTimer = 0;
+			waitFlag = !waitFlag;
+		}
+		waitTimer += mFT;
 	}
 
 	void OnOutOfBoundsEvent(const sf::Vector2f& mSide)

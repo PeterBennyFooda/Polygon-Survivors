@@ -46,6 +46,8 @@ GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderW
 		path = enemyTexturePath2;
 	else if (moveType == EnemyMoveType::PingPong)
 		path = enemyTexturePath3;
+	else if (moveType == EnemyMoveType::Charger)
+		path = enemyTexturePath4;
 
 	auto& enemySprite(enemy.AddComponent<CSprite2D>(path, target));
 	sf::Vector2f halfSize(enemySprite.Origin);

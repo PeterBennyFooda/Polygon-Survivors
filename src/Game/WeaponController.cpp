@@ -3,7 +3,7 @@ using namespace std;
 using namespace ComponentSystem;
 
 WeaponController::WeaponController(const WeaponType mType, EntityFactory& mFactory, ComponentSystem::EntityManager& mManager,
-	eventpp::EventDispatcher<int, void(int)>& mDispatcher, sf::RenderWindow& mWindow, sf::Vector2f& mPos) :
+	eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& mDispatcher, sf::RenderWindow& mWindow, sf::Vector2f& mPos) :
 	Type(mType),
 	factory(mFactory),
 	manager(mManager),
@@ -28,16 +28,13 @@ void WeaponController::Init()
 	}
 
 	stop = false;
-	gameDispatcher.appendListener(EventNames::GameStart, [this](int n) {
-		UNUSED(n);
+	gameDispatcher.appendListener(EventNames::GameStart, [this](const MyEvent&) {
 		stop = false;
 	});
-	gameDispatcher.appendListener(EventNames::Win, [this](int n) {
-		UNUSED(n);
+	gameDispatcher.appendListener(EventNames::Win, [this](const MyEvent&) {
 		stop = true;
 	});
-	gameDispatcher.appendListener(EventNames::GameOver, [this](int n) {
-		UNUSED(n);
+	gameDispatcher.appendListener(EventNames::GameOver, [this](const MyEvent&) {
 		stop = true;
 	});
 }
@@ -61,6 +58,8 @@ void WeaponController::Update(float mFT)
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
 		FireInterval = baseRate * 0.65f;
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl))
+		FireInterval = baseRate * 1.35f;
 	else
 		FireInterval = baseRate;
 }

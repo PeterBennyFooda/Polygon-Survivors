@@ -2,7 +2,7 @@
 using namespace std;
 using namespace ComponentSystem;
 
-HUDManager::HUDManager(ComponentSystem::EntityManager& mManager, eventpp::EventDispatcher<int, void(int)>& mDispatcher) :
+HUDManager::HUDManager(ComponentSystem::EntityManager& mManager, eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& mDispatcher) :
 	manager(mManager),
 	gameDispatcher(mDispatcher)
 {
@@ -25,7 +25,7 @@ void HUDManager::Init()
 		hintText.setOrigin(textRect.left / 2.0f, textRect.top / 2.0f);
 		hintText.setPosition(ScreenWidth / 2.0f - 90.f, ScreenHeight / 3.0f);
 		hintText.setStyle(sf::Text::Regular);
-		hintText.setString("[WASD] Move\n[LMB] Shoot\n[ENTER] Continue\n[SHIFT] Slow");
+		hintText.setString("[WASD] Move\n[LMB] Shoot\n[LSHIFT] Slow\n[LCTRL] Fast\n[ENTER] Continue");
 	}
 
 	//Score
@@ -64,14 +64,14 @@ void HUDManager::Init()
 		currentHealthText.setString("");
 	}
 
-	gameDispatcher.appendListener(EventNames::ScoreChange, [this](int score) {
-		currentScore += score;
+	gameDispatcher.appendListener(EventNames::ScoreChange, [this](const MyEvent& e) {
+		currentScore += e.param;
 		if (currentScore < 0)
 			currentScore = 0;
 		UpdateScore();
 	});
-	gameDispatcher.appendListener(EventNames::PlayerHPChange, [this](int hp) {
-		currentHealth += hp;
+	gameDispatcher.appendListener(EventNames::PlayerHPChange, [this](const MyEvent& e) {
+		currentHealth += e.param;
 		if (currentHealth < 0)
 			currentHealth = 0;
 		UpdateHealth();

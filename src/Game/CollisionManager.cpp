@@ -2,20 +2,18 @@
 using namespace std;
 using namespace ComponentSystem;
 
-CollisionManager::CollisionManager(ComponentSystem::EntityManager& mManager, eventpp::EventDispatcher<int, void(int)>& mDispatcher) :
+CollisionManager::CollisionManager(ComponentSystem::EntityManager& mManager,
+	eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& mDispatcher) :
 	manager(mManager),
 	gameDispatcher(mDispatcher)
 {
-	gameDispatcher.appendListener(EventNames::GameStart, [this](int n) {
-		UNUSED(n);
+	gameDispatcher.appendListener(EventNames::GameStart, [this](const MyEvent&) {
 		stop = false;
 	});
-	gameDispatcher.appendListener(EventNames::Win, [this](int n) {
-		UNUSED(n);
+	gameDispatcher.appendListener(EventNames::Win, [this](const MyEvent&) {
 		stop = true;
 	});
-	gameDispatcher.appendListener(EventNames::GameOver, [this](int n) {
-		UNUSED(n);
+	gameDispatcher.appendListener(EventNames::GameOver, [this](const MyEvent&) {
 		stop = true;
 	});
 
@@ -54,8 +52,9 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 
 				if (!statB.IsInvincible)
 				{
-					gameDispatcher.dispatch(EventNames::ScoreChange, HurtPenalty);
-					gameDispatcher.dispatch(EventNames::PlayerHPChange, -1);
+
+					gameDispatcher.dispatch(MyEvent { EventNames::ScoreChange, "Lose Score", HurtPenalty });
+					gameDispatcher.dispatch(MyEvent { EventNames::PlayerHPChange, "Lose HP", -1 });
 
 					sound.setBuffer(hurtBuffer);
 					sound.play();
@@ -65,7 +64,7 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 
 				if (statB.IsDead)
 				{
-					gameDispatcher.dispatch(EventNames::GameOver);
+					gameDispatcher.dispatch(MyEvent { EventNames::GameOver, "Game Over", 0 });
 					cB.Stop = true;
 				}
 			}
@@ -84,8 +83,8 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 
 				if (!statA.IsInvincible)
 				{
-					gameDispatcher.dispatch(EventNames::ScoreChange, HurtPenalty);
-					gameDispatcher.dispatch(EventNames::PlayerHPChange, -1);
+					gameDispatcher.dispatch(MyEvent { EventNames::ScoreChange, "Lose Score", HurtPenalty });
+					gameDispatcher.dispatch(MyEvent { EventNames::PlayerHPChange, "Lose HP", -1 });
 
 					sound.setBuffer(hurtBuffer);
 					sound.play();
@@ -95,7 +94,7 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 
 				if (statA.IsDead)
 				{
-					gameDispatcher.dispatch(EventNames::GameOver);
+					gameDispatcher.dispatch(MyEvent { EventNames::GameOver, "Game Over", 0 });
 					cA.Stop = true;
 				}
 			}
@@ -119,7 +118,7 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 
 			if (statB.IsDead)
 			{
-				gameDispatcher.dispatch(EventNames::ScoreChange, statB.GetScore());
+				gameDispatcher.dispatch(MyEvent { EventNames::ScoreChange, "Get Score", statB.GetScore() });
 				sound.setBuffer(dieBuffer);
 				sound.play();
 			}
@@ -139,7 +138,7 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 
 			if (statA.IsDead)
 			{
-				gameDispatcher.dispatch(EventNames::ScoreChange, statA.GetScore());
+				gameDispatcher.dispatch(MyEvent { EventNames::ScoreChange, "Get Score", statA.GetScore() });
 				sound.setBuffer(dieBuffer);
 				sound.play();
 			}
@@ -191,11 +190,11 @@ void CollisionManager::TestAllCollision()
 	auto& projectiles(manager.GetEntitiesByGroup(EntityGroup::Projectile));
 
 	//Enemies only collide with players.
-	for (size_t i = 0; i < enemies.size(); i++)
+	for (size_t i = 0; i < enemies.size(); ++i)
 	{
 		auto& e1(enemies[i]);
 		//Check collisions with all players.
-		for (size_t j = 0; j < players.size(); j++)
+		for (size_t j = 0; j < players.size(); ++j)
 		{
 			auto& p(players[j]);
 			TestCollision(*e1, *p);
@@ -203,11 +202,11 @@ void CollisionManager::TestAllCollision()
 	}
 
 	//Players only collide with obstacles.
-	// for (size_t i = 0; i < players.size(); i++)
+	// for (size_t i = 0; i < players.size(); ++i)
 	// {
 	// 	auto& p(players[i]);
 	// 	//Check collisions with all obstacles.
-	// 	for (size_t j = 0; j < obstacles.size(); j++)
+	// 	for (size_t j = 0; j < obstacles.size(); ++j)
 	// 	{
 	// 		auto& o(obstacles[j]);
 	// 		TestCollision(*p, *o);
@@ -215,11 +214,11 @@ void CollisionManager::TestAllCollision()
 	// }
 
 	//Projectiles only collide with enemies.
-	for (size_t i = 0; i < projectiles.size(); i++)
+	for (size_t i = 0; i < projectiles.size(); ++i)
 	{
 		auto& pj(projectiles[i]);
 		//Check collisions with all enemies.
-		for (size_t j = 0; j < enemies.size(); j++)
+		for (size_t j = 0; j < enemies.size(); ++j)
 		{
 			auto& e(enemies[j]);
 			TestCollision(*pj, *e);

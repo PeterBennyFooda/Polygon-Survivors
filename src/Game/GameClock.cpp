@@ -1,7 +1,7 @@
 #include "include/GameClock.h"
 using namespace std;
 
-GameClock::GameClock(eventpp::EventDispatcher<int, void(int)>& mDispatcher) :
+GameClock::GameClock(eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& mDispatcher) :
 	gameDispatcher(mDispatcher)
 {
 	Reset();
@@ -11,15 +11,13 @@ GameClock::GameClock(eventpp::EventDispatcher<int, void(int)>& mDispatcher) :
 	int timeLimit = (int)DefaultTimeLimit;
 	text.setString("    Press Enter to Start\nSurvive for " + to_string(timeLimit) + " Seconds");
 
-	gameDispatcher.appendListener(EventNames::Win, [this](int n) {
-		UNUSED(n);
+	gameDispatcher.appendListener(EventNames::Win, [this](const MyEvent&) {
 		DrawWin();
 		isWin = true;
 		stop = true;
 		inGame = false;
 	});
-	gameDispatcher.appendListener(EventNames::GameOver, [this](int n) {
-		UNUSED(n);
+	gameDispatcher.appendListener(EventNames::GameOver, [this](const MyEvent&) {
 		DrawLose();
 		isWin = false;
 		stop = true;
@@ -66,7 +64,7 @@ void GameClock::RunTimer()
 		{
 			stop = true;
 			CurrentTime = 0;
-			gameDispatcher.dispatch(EventNames::Win);
+			gameDispatcher.dispatch(MyEvent { EventNames::Win, "Win", 0 });
 		}
 	}
 }

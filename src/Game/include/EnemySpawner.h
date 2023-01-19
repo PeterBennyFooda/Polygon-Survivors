@@ -7,7 +7,8 @@ class EnemySpawner
 private:
 	const int Xmax = ScreenWidth;
 	const int Ymax = ScreenHeight;
-	const int min = 0;
+	const int Xmin = ScreenWidth / 2;
+	const int Ymin = ScreenHeight / 2;
 	const int dangerRadius = Xmax;
 	const sf::Vector2f center { ScreenWidth / 2.f, ScreenHeight / 2.f };
 
@@ -32,6 +33,7 @@ public:
 	void GenerateChasers(int count);
 	void GenerateCowards(int count);
 	void GeneratePongs(int count);
+	void GenerateChargers(int count);
 
 	int RandomX();
 	int RandomY();

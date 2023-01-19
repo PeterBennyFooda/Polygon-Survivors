@@ -8,7 +8,7 @@ class HUDManager
 {
 private:
 	ComponentSystem::EntityManager& manager;
-	eventpp::EventDispatcher<int, void(int)>& gameDispatcher;
+	eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& gameDispatcher;
 	int currentScore { 0 };
 	int currentHealth { 0 };
 	sf::Text currentScoreText;
@@ -24,7 +24,7 @@ private:
 	void UpdateHealth();
 
 public:
-	HUDManager(ComponentSystem::EntityManager& manager, eventpp::EventDispatcher<int, void(int)>& dispatcher);
+	HUDManager(ComponentSystem::EntityManager& manager, eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& dispatcher);
 
 	void Reset();
 	void DrawHUD(sf::RenderWindow& window);

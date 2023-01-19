@@ -8,7 +8,7 @@ class CollisionManager
 {
 private:
 	ComponentSystem::EntityManager& manager;
-	eventpp::EventDispatcher<int, void(int)>& gameDispatcher;
+	eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& gameDispatcher;
 
 	template <class T1, class T2>
 	bool IsIntersecting(T1& mA, T2& mB) noexcept;
@@ -20,7 +20,7 @@ private:
 	sf::Sound sound;
 
 public:
-	CollisionManager(ComponentSystem::EntityManager& mManager, eventpp::EventDispatcher<int, void(int)>& dispatcher);
+	CollisionManager(ComponentSystem::EntityManager& mManager, eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& dispatcher);
 
 	void TestAllCollision();
 	void TestCollision(ComponentSystem::GameEntity& a, ComponentSystem::GameEntity& b) noexcept;

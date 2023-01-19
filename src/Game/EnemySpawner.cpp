@@ -22,6 +22,7 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 	GeneratePongs(count);
 	if (mode == EnemySpawnMode::Hard)
 		return;
+	GenerateChargers(count / 5);
 }
 
 void EnemySpawner::GenerateChasers(int count)
@@ -30,16 +31,16 @@ void EnemySpawner::GenerateChasers(int count)
 	int randomOffestY = RandomY() * RandomSign();
 
 	//Init chasers.
-	for (int i = 0; i < count; i++)
+	for (int i = 0; i < count; ++i)
 	{
 		factory.CreateEnemy(center + sf::Vector2f(randomOffestX, randomOffestY), window, 0.8f, EnemyBaseHealth);
 		randomOffestX = RandomX();
 		randomOffestY = RandomY();
-		//cout << randomOffestX << "+" << center.x << "||" << randomOffestY << "+" << center.y << endl;
+		cout << randomOffestX << "+" << center.x << "||" << randomOffestY << "+" << center.y << endl;
 		CheckTooClose(randomOffestX, randomOffestY);
 		randomOffestX *= RandomSign();
 		randomOffestY *= RandomSign();
-		//cout << randomOffestX << "+" << center.x << "==" << randomOffestY << "+" << center.y << endl;
+		cout << randomOffestX << "+" << center.x << "==" << randomOffestY << "+" << center.y << endl;
 	}
 }
 void EnemySpawner::GenerateCowards(int count)
@@ -48,7 +49,7 @@ void EnemySpawner::GenerateCowards(int count)
 	int randomOffestY = RandomY() * RandomSign();
 
 	//Init cowards.
-	for (int i = 0; i < count; i++)
+	for (int i = 0; i < count; ++i)
 	{
 		factory.CreateEnemy(center + sf::Vector2f(randomOffestX, randomOffestY),
 			window,
@@ -67,13 +68,33 @@ void EnemySpawner::GeneratePongs(int count)
 	int randomOffestX = RandomX() * RandomSign();
 	int randomOffestY = RandomY() * RandomSign();
 
-	for (int i = 0; i < count; i++)
+	for (int i = 0; i < count; ++i)
 	{
 		factory.CreateEnemy(center + sf::Vector2f(randomOffestX, randomOffestY),
 			window,
 			0.55f,
 			EnemyMoveType::PingPong,
-			EnemyBaseHealth * 3);
+			EnemyBaseHealth * 2);
+
+		randomOffestX = RandomX();
+		randomOffestY = RandomY();
+		CheckTooClose(randomOffestX, randomOffestY);
+		randomOffestX *= RandomSign();
+		randomOffestY *= RandomSign();
+	}
+}
+void EnemySpawner::GenerateChargers(int count)
+{
+	int randomOffestX = RandomX() * RandomSign();
+	int randomOffestY = RandomY() * RandomSign();
+
+	for (int i = 0; i < count; ++i)
+	{
+		factory.CreateEnemy(center + sf::Vector2f(randomOffestX, randomOffestY),
+			window,
+			1.1f,
+			EnemyMoveType::Charger,
+			EnemyBaseHealth * 5);
 
 		randomOffestX = RandomX();
 		randomOffestY = RandomY();
@@ -86,7 +107,7 @@ void EnemySpawner::GeneratePongs(int count)
 int EnemySpawner::RandomX()
 {
 	int result = 0;
-	result = (rand() % (Xmax - min + 1) + min);
+	result = (rand() % (Xmax - Xmin + 1) + Xmin);
 
 	return result;
 }
@@ -94,7 +115,7 @@ int EnemySpawner::RandomX()
 int EnemySpawner::RandomY()
 {
 	int result = 0;
-	result = (rand() % (Ymax - min + 1) + min);
+	result = (rand() % (Ymax - Ymin + 1) + Ymin);
 
 	return result;
 }

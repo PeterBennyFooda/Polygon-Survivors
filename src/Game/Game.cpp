@@ -58,16 +58,13 @@ void Game ::Init()
 
 	GameState = GameStates::Menu;
 
-	gameDispatcher.appendListener(EventNames::GameStart, [this](int n) {
-		UNUSED(n);
+	gameDispatcher.appendListener(EventNames::GameStart, [this](const MyEvent&) {
 		this->OnGameStateChange(EventNames::GameStart);
 	});
-	gameDispatcher.appendListener(EventNames::Win, [this](int n) {
-		UNUSED(n);
+	gameDispatcher.appendListener(EventNames::Win, [this](const MyEvent&) {
 		this->OnGameStateChange(EventNames::Win);
 	});
-	gameDispatcher.appendListener(EventNames::GameOver, [this](int n) {
-		UNUSED(n);
+	gameDispatcher.appendListener(EventNames::GameOver, [this](const MyEvent&) {
 		this->OnGameStateChange(EventNames::GameOver);
 	});
 }
@@ -104,7 +101,7 @@ void Game::GenerateLevel()
 	float randomOffestY = unif(generator);
 
 	//Init obstcles.
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 10; ++i)
 	{
 		entityFactory->CreateObstacle(sf::Vector2f(ScreenWidth / 2 + randomOffestX, ScreenHeight / 2 + randomOffestY), *window);
 		randomOffestX = unif(generator);
@@ -116,6 +113,7 @@ void Game::GenerateEnemyWave()
 {
 	int interval = (int)gameClock->CurrentTime % WaveInterval;
 	int modeInterval = (int)gameClock->CurrentTime % WaveModeInterval;
+	int eliteInteval = (int)gameClock->CurrentTime % EliteInterval;
 
 	if (gameClock->CurrentTime < 1)
 		return;
@@ -126,13 +124,19 @@ void Game::GenerateEnemyWave()
 			currentWaveMode = EnemySpawnMode::Normal;
 		else if (currentWaveMode == EnemySpawnMode::Normal)
 			currentWaveMode = EnemySpawnMode::Hard;
+		else if (currentWaveMode == EnemySpawnMode::Hard)
+			currentWaveMode = EnemySpawnMode::VeryHard;
 	}
 
 	if (interval == 0 && !spawnLock)
 	{
 		spawnLock = true;
 		enemySpawner->GenerateEnemy(currentSpawnCount, currentWaveMode);
-		currentSpawnCount++;
+
+		if (eliteInteval == 0)
+			enemySpawner->GenerateChargers(3);
+
+		currentSpawnCount += WaveSpawnOffset;
 	}
 	else if (interval > 0)
 	{
@@ -158,7 +162,7 @@ void Game::PollingEvent()
 						ClearStage();
 						InitPlayer();
 						InitEnemy();
-						gameDispatcher.dispatch(EventNames::GameStart);
+						gameDispatcher.dispatch(MyEvent { EventNames::GameStart, "Game Start", 0 });
 						InitLevel();
 					}
 				}
@@ -173,7 +177,7 @@ void Game::ClearStage()
 {
 	//Clear Player
 	auto& players(manager.GetEntitiesByGroup(EntityGroup::Player));
-	for (size_t i = 0; i < players.size(); i++)
+	for (size_t i = 0; i < players.size(); ++i)
 	{
 		auto& p(players[i]);
 		p->Destroy();
@@ -181,7 +185,7 @@ void Game::ClearStage()
 
 	//Clear Enemies
 	auto& enemies(manager.GetEntitiesByGroup(EntityGroup::Enemy));
-	for (size_t i = 0; i < enemies.size(); i++)
+	for (size_t i = 0; i < enemies.size(); ++i)
 	{
 		auto& e(enemies[i]);
 		e->Destroy();
@@ -189,7 +193,7 @@ void Game::ClearStage()
 
 	//Clear Projectiles
 	auto& projectiles(manager.GetEntitiesByGroup(EntityGroup::Projectile));
-	for (size_t i = 0; i < projectiles.size(); i++)
+	for (size_t i = 0; i < projectiles.size(); ++i)
 	{
 		auto& pj(projectiles[i]);
 		pj->Destroy();
@@ -197,7 +201,7 @@ void Game::ClearStage()
 
 	//Clear Obstacles
 	auto& obstacles(manager.GetEntitiesByGroup(EntityGroup::Obstacle));
-	for (size_t i = 0; i < obstacles.size(); i++)
+	for (size_t i = 0; i < obstacles.size(); ++i)
 	{
 		auto& o(obstacles[i]);
 		o->Destroy();
@@ -208,7 +212,7 @@ void Game::ClearStage()
 void Game::PauseStage()
 {
 	auto& enemies(manager.GetEntitiesByGroup(EntityGroup::Enemy));
-	for (size_t i = 0; i < enemies.size(); i++)
+	for (size_t i = 0; i < enemies.size(); ++i)
 	{
 		auto& e(enemies[i]);
 		auto& cE(e->GetComponent<CSimpleEnemyControl>());

@@ -67,7 +67,7 @@ private:
 	void OnGameStateChange(EventNames state);
 
 public:
-	eventpp::EventDispatcher<int, void(int)> gameDispatcher;
+	eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies> gameDispatcher;
 	GameStates GameState;
 
 	Game();

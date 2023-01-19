@@ -8,8 +8,9 @@ constexpr int EnemyBaseHealth = 1.f;
 constexpr float PlayerBaseSpeed = 160.f;
 constexpr float EnemyBaseSpeed = 120.f;
 constexpr float EnemyRotateSpeed = 5.f;
+
 constexpr float BulletBaseSpeed = 400.f;
-constexpr float HitCoolDown = 0.25f;
+constexpr float HitCoolDown = 0.1f;
 constexpr int HurtPenalty = -50;
 
 //Update Method
@@ -20,8 +21,10 @@ constexpr float DefaultTimeLimit = 120.f;
 
 //Wave
 constexpr int WaveInterval = 10;
-constexpr int WaveModeInterval = WaveInterval * 2;
-constexpr int WaveSpawnOffset = 1;
+constexpr int WaveModeInterval = WaveInterval * 3;
+constexpr int EliteInterval = (DefaultTimeLimit / WaveInterval) * 0.5f * WaveInterval;
+constexpr int WaveBaseSpawn = 5;
+constexpr int WaveSpawnOffset = 2;
 
 //Game States
 enum GameStates : std::size_t
@@ -29,6 +32,21 @@ enum GameStates : std::size_t
 	Menu,
 	Stage,
 	Result
+};
+
+//Event content
+struct MyEvent
+{
+	int type;
+	std::string message;
+	int param;
+};
+struct MyEventPolicies
+{
+	static int getEvent(const MyEvent& e)
+	{
+		return e.type;
+	}
 };
 
 //Events Name
@@ -64,12 +82,14 @@ enum EnemyMoveType
 {
 	ChasePlayer,
 	AvoidPlayer,
-	PingPong
+	PingPong,
+	Charger
 };
 
 enum EnemySpawnMode : std::size_t
 {
 	Easy,
 	Normal,
-	Hard
+	Hard,
+	VeryHard
 };

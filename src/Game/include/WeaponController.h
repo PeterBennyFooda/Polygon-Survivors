@@ -18,7 +18,7 @@ private:
 	EntityFactory& factory;
 
 	ComponentSystem::EntityManager& manager;
-	eventpp::EventDispatcher<int, void(int)>& gameDispatcher;
+	eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& gameDispatcher;
 	sf::RenderWindow& window;
 	sf::Vector2f& weaponMountPoint;
 	bool stop { true };
@@ -29,7 +29,7 @@ private:
 
 public:
 	WeaponController(const WeaponType mType, EntityFactory& mFactory, ComponentSystem::EntityManager& mManager,
-		eventpp::EventDispatcher<int, void(int)>& mDispatcher, sf::RenderWindow& mWindow, sf::Vector2f& mPos);
+		eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& mDispatcher, sf::RenderWindow& mWindow, sf::Vector2f& mPos);
 
 	void Init();
 	void Update(float mFT);
