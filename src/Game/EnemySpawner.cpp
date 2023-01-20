@@ -36,11 +36,11 @@ void EnemySpawner::GenerateChasers(int count)
 		factory.CreateEnemy(center + sf::Vector2f(randomOffestX, randomOffestY), window, 0.8f, EnemyBaseHealth);
 		randomOffestX = RandomX();
 		randomOffestY = RandomY();
-		cout << randomOffestX << "+" << center.x << "||" << randomOffestY << "+" << center.y << endl;
+		//cout << randomOffestX << "+" << center.x << "||" << randomOffestY << "+" << center.y << endl;
 		CheckTooClose(randomOffestX, randomOffestY);
 		randomOffestX *= RandomSign();
 		randomOffestY *= RandomSign();
-		cout << randomOffestX << "+" << center.x << "==" << randomOffestY << "+" << center.y << endl;
+		//cout << randomOffestX << "+" << center.x << "==" << randomOffestY << "+" << center.y << endl;
 	}
 }
 void EnemySpawner::GenerateCowards(int count)

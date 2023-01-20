@@ -1,6 +1,7 @@
 #pragma once
 #include "ComponentSystem/EntityManager.h"
 #include "GlobalGameSettings.h"
+#include "eventpp/eventdispatcher.h"
 
 /////////////////////////////////////////////////
 ///
@@ -395,7 +396,7 @@ public:
  */
 struct CStat : Component
 {
-private:
+protected:
 	const float baseHitcoolDown = { 0.5f };
 	float hitTimer = { 0.f };
 	float hitCoolDown = { 0.5f };
@@ -418,11 +419,17 @@ public:
 	bool IsInvincible { false };
 	bool CanBeProtect { true };
 	bool CanGiveScore { true };
+	bool CanBeControl { false };
 
+protected:
+	eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& gameDispatcher;
+
+public:
 	CStat() = default;
-	CStat(const int& mHP, const float& mSpeedMod) :
+	CStat(const int& mHP, const float& mSpeedMod, eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& mDispatcher) :
 		Health(mHP),
-		SpeedMod(mSpeedMod)
+		SpeedMod(mSpeedMod),
+		gameDispatcher(mDispatcher)
 	{}
 
 	void Init() override
@@ -447,13 +454,19 @@ public:
 			DeathTimer(mFT);
 	}
 
-	void Hit(int damage)
+	virtual void Hit(int damage)
 	{
 		HitEffect();
 		if (!IsDead && !IsInvincible)
 		{
 			HitProtection(baseHitcoolDown);
 			Health -= damage;
+			gameDispatcher.dispatch(MyEvent { EventNames::SoundEvent, HurtSoundPath, 0 });
+			if (CanBeControl)
+			{
+				gameDispatcher.dispatch(MyEvent { EventNames::ScoreChange, "Lose Score", HurtPenalty });
+				gameDispatcher.dispatch(MyEvent { EventNames::PlayerHPChange, "Lose HP", -1 });
+			}
 		}
 		CheckDeath();
 	}
@@ -477,8 +490,8 @@ public:
 		return 0;
 	}
 
-private:
-	void CheckDeath()
+protected:
+	virtual void CheckDeath()
 	{
 		if (Health <= 0)
 		{
@@ -488,6 +501,13 @@ private:
 				sprite->ChangeColor(sf::Color(0, 0, 0, 0));
 				Health = 0;
 				IsDead = true;
+				IsInvincible = true;
+
+				if (CanGiveScore)
+					gameDispatcher.dispatch(MyEvent { EventNames::ScoreChange, "Get Score", GetScore() });
+				if (CanBeControl)
+					gameDispatcher.dispatch(MyEvent { EventNames::GameOver, "Game Over", 0 });
+				gameDispatcher.dispatch(MyEvent { EventNames::SoundEvent, DieSoundPath, 0 });
 			}
 		}
 	}

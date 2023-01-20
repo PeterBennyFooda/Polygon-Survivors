@@ -29,20 +29,8 @@ void Game ::Init()
 	timePoint1 = std::chrono::steady_clock::now();
 	timePoint2 = std::chrono::steady_clock::now();
 
-	//TO BE DONE IN A AUDIO CONTROLLER
-	if (!bgm.openFromFile(BGMPath))
-	{
-		//error..
-	}
-	else
-	{
-		bgm.setLoop(true);
-		bgm.setVolume(50.f);
-		bgm.play();
-	}
-
 	//Create entity factory.
-	this->entityFactory = new EntityFactory(manager);
+	this->entityFactory = new EntityFactory(manager, gameDispatcher);
 
 	//Create collision manager.
 	this->collisionManager = new CollisionManager(manager, gameDispatcher);
@@ -55,6 +43,10 @@ void Game ::Init()
 
 	//Create HUD.
 	this->hudManager = new HUDManager(manager, gameDispatcher);
+
+	//Create AudioManager.
+	this->audioManager = new AudioManager(gameDispatcher);
+	gameDispatcher.dispatch(MyEvent { EventNames::BGMEvent, BGMPath, 0 });
 
 	GameState = GameStates::Menu;
 
@@ -284,13 +276,16 @@ void Game::Update()
 
 	if (!UseDeltaTime)
 		return;
+
 	if (GameState == GameStates::Stage)
 	{
 		if (this->playerWeapon != nullptr)
 			this->playerWeapon->Update(frameTimeSeconds);
 	}
+
 	manager.Refresh();
 	manager.Update(frameTimeSeconds);
+	audioManager->Update();
 }
 
 void Game::Render()

@@ -14,11 +14,6 @@ private:
 	bool IsIntersecting(T1& mA, T2& mB) noexcept;
 	bool stop { false };
 
-	//TO BE DONE IN A AUDIO CONTROLLER
-	sf::SoundBuffer hurtBuffer;
-	sf::SoundBuffer dieBuffer;
-	sf::Sound sound;
-
 public:
 	CollisionManager(ComponentSystem::EntityManager& mManager, eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& dispatcher);
 

@@ -7,8 +7,8 @@ class EnemySpawner
 private:
 	const int Xmax = ScreenWidth;
 	const int Ymax = ScreenHeight;
-	const int Xmin = ScreenWidth / 2;
-	const int Ymin = ScreenHeight / 2;
+	const int Xmin = 0;
+	const int Ymin = 0;
 	const int dangerRadius = Xmax;
 	const sf::Vector2f center { ScreenWidth / 2.f, ScreenHeight / 2.f };
 

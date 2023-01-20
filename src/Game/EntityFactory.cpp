@@ -14,8 +14,9 @@ GameEntity& EntityFactory::CreatePlayer(const sf::Vector2f& position, sf::Render
 	player.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
 	player.AddComponent<CParticle>(target);
 
-	auto& playerStat(player.AddComponent<CStat>(3, 1));
+	auto& playerStat(player.AddComponent<CStat>(3, 1, gameDispatcher));
 	playerStat.CanBeProtect = true;
+	playerStat.CanBeControl = true;
 	player.AddComponent<CPlayerControl>(PlayerBaseSpeed);
 
 	player.AddGroup(EntityGroup::Player);
@@ -55,7 +56,7 @@ GameEntity& EntityFactory::CreateEnemy(const sf::Vector2f& position, sf::RenderW
 	enemy.AddComponent<CPhysics>(halfSize, ScreenWidth, ScreenHeight);
 	enemy.AddComponent<CParticle>(target);
 
-	auto& enemyStat(enemy.AddComponent<CStat>(health, speedMod));
+	auto& enemyStat(enemy.AddComponent<CStat>(health, speedMod, gameDispatcher));
 	enemyStat.CanBeProtect = true;
 
 	auto& players(manager.GetEntitiesByGroup(EntityGroup::Player));

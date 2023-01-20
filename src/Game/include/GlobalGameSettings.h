@@ -4,7 +4,8 @@
 //Basic Game
 constexpr float ScreenWidth = 800.0f;
 constexpr float ScreenHeight = 600.0f;
-constexpr int EnemyBaseHealth = 1.f;
+constexpr int PlayerBaseHealth = 3;
+constexpr int EnemyBaseHealth = 1;
 constexpr float PlayerBaseSpeed = 160.f;
 constexpr float EnemyBaseSpeed = 120.f;
 constexpr float EnemyRotateSpeed = 5.f;
@@ -57,7 +58,9 @@ enum EventNames : int
 	GameOver,
 	Restart,
 	ScoreChange,
-	PlayerHPChange
+	PlayerHPChange,
+	BGMEvent,
+	SoundEvent
 };
 
 //Enums

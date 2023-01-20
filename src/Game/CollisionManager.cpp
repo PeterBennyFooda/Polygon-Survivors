@@ -16,17 +16,6 @@ CollisionManager::CollisionManager(ComponentSystem::EntityManager& mManager,
 	gameDispatcher.appendListener(EventNames::GameOver, [this](const MyEvent&) {
 		stop = true;
 	});
-
-	//TO BE DONE IN A AUDIO CONTROLLER
-	if (!hurtBuffer.loadFromFile(HurtSoundPath))
-	{
-		//error...
-	}
-	if (!dieBuffer.loadFromFile(DieSoundPath))
-	{
-		//error...
-	}
-	sound.setVolume(45.f);
 }
 
 void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
@@ -49,22 +38,10 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 			{
 				auto& statB(b.GetComponent<CStat>());
 				auto& cB(b.GetComponent<CPlayerControl>());
-
-				if (!statB.IsInvincible)
-				{
-
-					gameDispatcher.dispatch(MyEvent { EventNames::ScoreChange, "Lose Score", HurtPenalty });
-					gameDispatcher.dispatch(MyEvent { EventNames::PlayerHPChange, "Lose HP", -1 });
-
-					sound.setBuffer(hurtBuffer);
-					sound.play();
-				}
-
 				statB.Hit(1);
 
 				if (statB.IsDead)
 				{
-					gameDispatcher.dispatch(MyEvent { EventNames::GameOver, "Game Over", 0 });
 					cB.Stop = true;
 				}
 			}
@@ -81,20 +58,10 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 				auto& statA(a.GetComponent<CStat>());
 				auto& cA(a.GetComponent<CPlayerControl>());
 
-				if (!statA.IsInvincible)
-				{
-					gameDispatcher.dispatch(MyEvent { EventNames::ScoreChange, "Lose Score", HurtPenalty });
-					gameDispatcher.dispatch(MyEvent { EventNames::PlayerHPChange, "Lose HP", -1 });
-
-					sound.setBuffer(hurtBuffer);
-					sound.play();
-				}
-
 				statA.Hit(1);
 
 				if (statA.IsDead)
 				{
-					gameDispatcher.dispatch(MyEvent { EventNames::GameOver, "Game Over", 0 });
 					cA.Stop = true;
 				}
 			}
@@ -116,19 +83,10 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 			auto& statB(b.GetComponent<CStat>());
 			auto& pjA(a.GetComponent<CProjectile>());
 
-			if (statB.IsDead)
-			{
-				gameDispatcher.dispatch(MyEvent { EventNames::ScoreChange, "Get Score", statB.GetScore() });
-				sound.setBuffer(dieBuffer);
-				sound.play();
-			}
-			else
+			if (!statB.IsDead)
 			{
 				statB.Hit(pjA.Damage);
 				a.Destroy();
-
-				sound.setBuffer(hurtBuffer);
-				sound.play();
 			}
 		}
 		else if (b.HasGroup(EntityGroup::Projectile) && a.HasGroup(EntityGroup::Enemy))
@@ -136,19 +94,10 @@ void CollisionManager::TestCollision(GameEntity& a, GameEntity& b) noexcept
 			auto& statA(a.GetComponent<CStat>());
 			auto& pjB(b.GetComponent<CProjectile>());
 
-			if (statA.IsDead)
-			{
-				gameDispatcher.dispatch(MyEvent { EventNames::ScoreChange, "Get Score", statA.GetScore() });
-				sound.setBuffer(dieBuffer);
-				sound.play();
-			}
-			else
+			if (!statA.IsDead)
 			{
 				statA.Hit(pjB.Damage);
 				b.Destroy();
-
-				sound.setBuffer(hurtBuffer);
-				sound.play();
 			}
 		}
 	}

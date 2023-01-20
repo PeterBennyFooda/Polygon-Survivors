@@ -14,4 +14,4 @@ const std::string fontPath4 = "Resources/Font/Mincho/TrueType/Mincho_H4.ttf";
 const std::string BGMPath = "Resources/Audio/BGM.ogg";
 const std::string ShootSoundPath = "Resources/Audio/Gun.wav";
 const std::string HurtSoundPath = "Resources/Audio/Hurt.wav";
-const std::string DieSoundPath = "Resources/Audio/Die.ogg";
+const std::string DieSoundPath = "Resources/Audio/Die.wav";

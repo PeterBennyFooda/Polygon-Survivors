@@ -1,5 +1,22 @@
 #include "include/AudioManager.h"
 
+AudioManager::AudioManager(eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& mDispatcher) :
+	gameDispatcher(mDispatcher)
+{
+	Init();
+}
+
+void AudioManager::Init()
+{
+	gameDispatcher.appendListener(EventNames::BGMEvent, [this](const MyEvent& e) {
+		PlayBGM(e.message);
+	});
+
+	gameDispatcher.appendListener(EventNames::SoundEvent, [this](const MyEvent& e) {
+		PlaySoud(e.message);
+	});
+}
+
 void AudioManager::Update()
 {
 	ClearStopped();
@@ -22,6 +39,7 @@ void AudioManager::PlayBGM(std::string path)
 void AudioManager::PlaySoud(std::string path)
 {
 	sf::Sound* sound(new sf::Sound());
+	std::unique_ptr<sf::Sound> uPtr { sound };
 
 	if (!soundBuffer.loadFromFile(path))
 	{
@@ -30,7 +48,7 @@ void AudioManager::PlaySoud(std::string path)
 	else
 	{
 		sound->setBuffer(soundBuffer);
-		soundQueue.emplace_back(sound);
+		soundQueue.emplace_back(std::move(uPtr));
 		sound->play();
 	}
 }
@@ -46,7 +64,7 @@ void AudioManager::ClearStopped()
 	if (!soundQueue.empty())
 	{
 		soundQueue.erase(
-			std::remove_if(std::begin(soundQueue), std::end(soundQueue), [](const sf::Sound* sound) {
+			std::remove_if(std::begin(soundQueue), std::end(soundQueue), [](const std::unique_ptr<sf::Sound>& sound) {
 				return sound->getStatus() == sf::SoundSource::Status::Stopped;
 			}),
 			std::end(soundQueue));

@@ -1,4 +1,5 @@
 #pragma once
+#include "AudioManager.h"
 #include "CollisionManager.h"
 #include "ComponentSystem/EntityManager.h"
 #include "Components.h"
@@ -42,15 +43,12 @@ private:
 	WeaponController* playerWeapon { nullptr };
 	EnemySpawner* enemySpawner { nullptr };
 	HUDManager* hudManager { nullptr };
+	AudioManager* audioManager { nullptr };
 
 	GameClock* gameClock { nullptr };
 	float currentSpawnCount { 5 };
 	bool spawnLock { false };
 	EnemySpawnMode currentWaveMode { EnemySpawnMode::Easy };
-
-	//TO BE DONE IN A AUDIO CONTROLLER
-	sf::Music bgm;
-	sf::Sound sound;
 
 	void Init();
 	void InitLevel();

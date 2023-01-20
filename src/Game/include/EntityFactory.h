@@ -2,15 +2,19 @@
 #include "ComponentSystem/EntityManager.h"
 #include "Components.h"
 #include "GlobalGameSettings.h"
+#include "eventpp/eventdispatcher.h"
 
 class EntityFactory
 {
 private:
 	ComponentSystem::EntityManager& manager;
+	eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& gameDispatcher;
 
 public:
-	EntityFactory(ComponentSystem::EntityManager& mManager) :
-		manager(mManager)
+	EntityFactory(ComponentSystem::EntityManager& mManager,
+		eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& mDispatcher) :
+		manager(mManager),
+		gameDispatcher(mDispatcher)
 	{}
 
 	ComponentSystem::GameEntity& CreatePlayer(const sf::Vector2f& position, sf::RenderWindow& target) noexcept;
