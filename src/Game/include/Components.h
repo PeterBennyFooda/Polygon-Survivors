@@ -715,7 +715,7 @@ public:
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift))
 			slowMod = 0.5f;
-		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl))
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
 			slowMod = 1.5f;
 		else
 			slowMod = 1.f;

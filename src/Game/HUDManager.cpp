@@ -25,7 +25,7 @@ void HUDManager::Init()
 		hintText.setOrigin(textRect.left / 2.0f, textRect.top / 2.0f);
 		hintText.setPosition(ScreenWidth / 2.0f - 90.f, ScreenHeight / 3.0f);
 		hintText.setStyle(sf::Text::Regular);
-		hintText.setString("[WASD] Move\n[LMB] Shoot\n[LSHIFT] Slow\n[LCTRL] Fast\n[ENTER] Continue");
+		hintText.setString("[WASD] Move\n[LMB] Shoot\n[LSHIFT] Slow\n[Space] Fast\n[ENTER] Continue");
 	}
 
 	//Score
