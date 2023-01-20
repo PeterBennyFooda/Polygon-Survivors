@@ -99,7 +99,7 @@ void EnemySpawner::GenerateChargers(int count)
 			window,
 			1.1f,
 			EnemyMoveType::Charger,
-			EnemyBaseHealth * 5);
+			EnemyBaseHealth * 10);
 
 		randomOffestX = RandomX();
 		randomOffestY = RandomY();
