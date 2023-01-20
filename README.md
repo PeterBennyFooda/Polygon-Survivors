@@ -19,7 +19,7 @@ Glad that I have grown a lot.
 附註：本遊戲重新翻修自我以前還是大學新生時的一個小遊戲專案，那時沒有什麼經驗，  
 不只架構混亂，程式碼也跟義大利麵一樣，而且變數命名超級難看，真的很想罵罵以前的我。
 
-<img src="https://user-images.githubusercontent.com/6175456/213246569-62798169-e5ca-464a-9ff3-df4b28a919ac.png" width="400" height="300"> <img src="https://user-images.githubusercontent.com/6175456/213246654-13850309-d74b-4c36-8feb-19e677e3509a.png" width="400" height="300">
+<img src="https://user-images.githubusercontent.com/6175456/213667666-60459716-3c36-4766-b65d-ba1da2ae7e60.png" width="400" height="300"> <img src="https://user-images.githubusercontent.com/6175456/213667733-018d6f9f-4398-4253-bd97-23ba190e93f3.png" width="400" height="300">
 
 # Credits
 
