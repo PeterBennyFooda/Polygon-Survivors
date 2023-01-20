@@ -15,3 +15,4 @@ const std::string BGMPath = "Resources/Audio/BGM.ogg";
 const std::string ShootSoundPath = "Resources/Audio/Gun.wav";
 const std::string HurtSoundPath = "Resources/Audio/Hurt.wav";
 const std::string DieSoundPath = "Resources/Audio/Die.wav";
+const std::string DieSoundPath2 = "Resources/Audio/PlayerDie.wav";

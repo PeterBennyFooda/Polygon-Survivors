@@ -10,7 +10,7 @@ private:
 	const int Xmin = 0;
 	const int Ymin = 0;
 	const int dangerRadius = Xmax;
-	const sf::Vector2f center { ScreenWidth / 2.f, ScreenHeight / 2.f };
+	sf::Vector2f center { ScreenWidth / 2.f, ScreenHeight / 2.f };
 
 	EntityFactory& factory;
 	sf::RenderWindow& window;
@@ -24,7 +24,7 @@ public:
 		window(mWindow)
 	{}
 
-	void Init();
+	void SetCenter(sf::Vector2f& center);
 
 	void GenerateEnemy(int count);
 	void GenerateEnemy(EnemySpawnMode mode);

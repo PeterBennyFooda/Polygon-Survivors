@@ -9,8 +9,8 @@ private:
 	sf::Music bgmPlayer;
 	std::deque<std::unique_ptr<sf::Sound>> soundQueue;
 	sf::SoundBuffer soundBuffer;
-	float bgmVolume { 50.f };
-	float soudnVolume { 50.f };
+	float bgmVolume { 45.f };
+	float soudnVolume { 40.f };
 
 	eventpp::EventDispatcher<int, void(const MyEvent&), MyEventPolicies>& gameDispatcher;
 

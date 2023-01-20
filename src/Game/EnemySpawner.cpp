@@ -1,6 +1,11 @@
 #include "include/EnemySpawner.h"
 using namespace std;
 
+void EnemySpawner::SetCenter(sf::Vector2f& mCenter)
+{
+	center = mCenter;
+}
+
 void EnemySpawner::GenerateEnemy(int count)
 {
 	GenerateEnemy(count, EnemySpawnMode::Easy);
@@ -22,7 +27,7 @@ void EnemySpawner::GenerateEnemy(int count, EnemySpawnMode mode)
 	GeneratePongs(count);
 	if (mode == EnemySpawnMode::Hard)
 		return;
-	GenerateChargers(count / 5);
+	GenerateChasers(count / 2);
 }
 
 void EnemySpawner::GenerateChasers(int count)

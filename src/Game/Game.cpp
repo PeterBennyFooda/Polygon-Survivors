@@ -123,10 +123,16 @@ void Game::GenerateEnemyWave()
 	if (interval == 0 && !spawnLock)
 	{
 		spawnLock = true;
+
+		auto& players(manager.GetEntitiesByGroup(EntityGroup::Player));
+		auto& player(players[0]);
+		auto& pT(player->GetComponent<CTransform>());
+		sf::Vector2f& playerPos(pT.Position);
+		enemySpawner->SetCenter(playerPos);
 		enemySpawner->GenerateEnemy(currentSpawnCount, currentWaveMode);
 
 		if (eliteInteval == 0)
-			enemySpawner->GenerateChargers(3);
+			enemySpawner->GenerateChargers(1);
 
 		currentSpawnCount += WaveSpawnOffset;
 	}

@@ -506,8 +506,12 @@ protected:
 				if (CanGiveScore)
 					gameDispatcher.dispatch(MyEvent { EventNames::ScoreChange, "Get Score", GetScore() });
 				if (CanBeControl)
+				{
+					gameDispatcher.dispatch(MyEvent { EventNames::SoundEvent, DieSoundPath2, 0 });
 					gameDispatcher.dispatch(MyEvent { EventNames::GameOver, "Game Over", 0 });
-				gameDispatcher.dispatch(MyEvent { EventNames::SoundEvent, DieSoundPath, 0 });
+				}
+				else
+					gameDispatcher.dispatch(MyEvent { EventNames::SoundEvent, DieSoundPath, 0 });
 			}
 		}
 	}
@@ -546,9 +550,7 @@ protected:
 	{
 		if (particleEmitter != nullptr)
 		{
-			particleEmitter->SetColor(sf::Color::Red);
 			particleEmitter->SetPosition(transform->Position.x, transform->Position.y);
-			particleEmitter->SetShape(Shape::CIRCLE);
 			particleEmitter->SetParticleSpeed(100);
 
 			float grvMod = Randomizer(-1, 1);
@@ -557,7 +559,20 @@ protected:
 			float grvSpdY = grvMod * 5.f;
 
 			particleEmitter->SetGravity(grvSpdX, grvSpdY);
-			particleEmitter->Fuel(10);
+			particleEmitter->SetDissolve(true);
+
+			if (CanBeControl)
+			{
+				particleEmitter->SetColor(sf::Color::Yellow);
+				particleEmitter->SetShape(Shape::CIRCLE);
+				particleEmitter->Fuel(25);
+			}
+			else
+			{
+				particleEmitter->SetColor(sf::Color::Red);
+				particleEmitter->SetShape(Shape::CIRCLE);
+				particleEmitter->Fuel(10);
+			}
 		}
 	}
 
