@@ -6,8 +6,9 @@ Survive and beat your own high score.
  
 Currently this game only has 1 level and the map is fixed space, no infinite scrolling.  
 
-P.S. This game is a total refactor of one of my old projects when I was a junior at NCU many years ago.  
-The old one is a a huge mess. Codes are coupled super tightly and the variable names are terrible.  
+This game is a total refactor of one of my old projects when I was a junior at NCU many years ago.  
+The old one is a huge mess. Codes were coupled super tightly.
+
 Glad that I have grown a lot.
 
 **Download**: [link](https://github.com/PeterBennyFooda/Polygon-Survivors/releases)
